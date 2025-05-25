@@ -3,7 +3,7 @@
 #include "Enemy/Enemy.hpp"
 
 SlowBullet::SlowBullet(Engine::Point position, Engine::Point forwardDirection, float rotation, Turret* parent) :
-    Bullet("play/bullet-9.png", 500, 1, position, forwardDirection, rotation, parent) {
+    Bullet("play/bullet-8.png", 500, 1, position, forwardDirection, rotation, parent) {
 }
 
 void SlowBullet::OnExplode(Enemy* enemy) {

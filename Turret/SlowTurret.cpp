@@ -13,7 +13,7 @@
 
 const int SlowTurret::Price = 100;
 SlowTurret::SlowTurret(float x, float y) : 
-    Turret("play/tower-base.png", "play/enemy-9.png", x, y, 300, Price, 0.5) {
+    Turret("play/tower-base.png", "play/turret-6.png", x, y, 300, Price, 0.5) {
     // Move center downward, since we the turret head is slightly biased upward.
     Anchor.y += 8.0f / GetBitmapHeight();
 }
@@ -22,5 +22,5 @@ void SlowTurret::CreateBullet() {
     float rotation = atan2(diff.y, diff.x);
     Engine::Point normalized = diff.Normalize();
     getPlayScene()->BulletGroup->AddNewObject(new SlowBullet(Position + normalized * 36, diff, rotation, this));
-    AudioHelper::PlayAudio("laser.wav");
+    AudioHelper::PlayAudio("missile.wav");
 }

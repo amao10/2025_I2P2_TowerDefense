@@ -15,6 +15,8 @@ using namespace std;
 #include "Enemy/PlaneEnemy.hpp"
 #include "Enemy/SoldierEnemy.hpp"
 #include "Enemy/TankEnemy.hpp"
+#include "Enemy/SplitterEnemy.hpp"
+#include "Enemy/MiniEnemy.hpp"
 #include "Engine/AudioHelper.hpp"
 #include "Engine/GameEngine.hpp"
 #include "Engine/Group.hpp"
@@ -178,6 +180,9 @@ void PlayScene::Update(float deltaTime) {
                 break;
             case 3:
                 EnemyGroup->AddNewObject(enemy = new TankEnemy(SpawnCoordinate.x, SpawnCoordinate.y));
+                break;
+            case 4:
+                EnemyGroup->AddNewObject(enemy = new SplitterEnemy(SpawnCoordinate.x, SpawnCoordinate.y));
                 break;
             default:
                 continue;
@@ -395,7 +400,7 @@ void PlayScene::ConstructUI() {
     // Button 3
     btn = new TurretButton("play/floor.png", "play/dirt.png",
                            Engine::Sprite("play/tower-base.png", 1446,162, 0, 0, 0, 0),
-                           Engine::Sprite("play/enemy-9.png", 1446, 162 - 8, 0, 0, 0, 0), 1446, 162, SlowTurret::Price);
+                           Engine::Sprite("play/turret-6.png", 1446, 162 - 8, 0, 0, 0, 0), 1446, 162, SlowTurret::Price);
     btn->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 2));
     UIGroup->AddNewControlObject(btn);
 
