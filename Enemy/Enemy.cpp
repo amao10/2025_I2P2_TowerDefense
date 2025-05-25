@@ -1,12 +1,14 @@
+#include "Enemy.hpp"
+
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/color.h>
+
 #include <cmath>
 #include <random>
 #include <string>
 #include <vector>
 
 #include "Bullet/Bullet.hpp"
-#include "Enemy.hpp"
 #include "Engine/AudioHelper.hpp"
 #include "Engine/GameEngine.hpp"
 #include "Engine/Group.hpp"
@@ -34,6 +36,7 @@ void Enemy::OnExplode() {
 Enemy::Enemy(std::string img, float x, float y, float radius, float speed, float hp, int money) : Engine::Sprite(img, x, y), speed(speed), hp(hp), money(money) {
     CollisionRadius = radius;
     reachEndTime = 0;
+    originalSpeed = speed;
 }
 void Enemy::Hit(float damage) {
     hp -= damage;
@@ -44,6 +47,7 @@ void Enemy::Hit(float damage) {
             it->Target = nullptr;
         for (auto &it : lockedBullets)
             it->Target = nullptr;
+        getPlayScene()->ScoreUp();  // enemy死掉加分
         getPlayScene()->EarnMoney(money);
         getPlayScene()->EnemyGroup->RemoveObject(objectIterator);
         AudioHelper::PlayAudio("explosion.wav");
@@ -83,6 +87,13 @@ void Enemy::UpdatePath(const std::vector<std::vector<int>> &mapDistance) {
     path[0] = PlayScene::EndGridPoint;
 }
 void Enemy::Update(float deltaTime) {
+    if (slowed) {
+        slowTimer -= deltaTime;
+        if (slowTimer <= 0) {
+            slowed = false;
+            speed = originalSpeed; // 恢復原本速度
+        }
+    }
     // Pre-calculate the velocity.
     float remainSpeed = speed * deltaTime;
     while (remainSpeed != 0) {
@@ -120,4 +131,13 @@ void Enemy::Draw() const {
         // Draw collision radius.
         al_draw_circle(Position.x, Position.y, CollisionRadius, al_map_rgb(255, 0, 0), 2);
     }
+}
+
+void Enemy::Slow(float duration) {
+    if (!slowed) {
+        originalSpeed = speed; // 儲存目前速度
+    }
+    slowed = true;
+    slowTimer = duration;
+    speed = 0.000001; // 停下來(不能設成0)
 }

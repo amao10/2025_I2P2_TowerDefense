@@ -28,11 +28,13 @@ private:
     std::shared_ptr<ALLEGRO_SAMPLE_INSTANCE> deathBGMInstance;
 
 protected:
+    int scores;//分數
     int lives;
     int money;
     int SpeedMult;
 
 public:
+    static int ScoreForWinner;//分數
     static bool DebugMode;
     static const std::vector<Engine::Point> directions;
     static const int MapWidth, MapHeight;
@@ -55,6 +57,7 @@ public:
     Group *UIGroup;
     Engine::Label *UIMoney;
     Engine::Label *UILives;
+    Engine::Label* UIScore;
     Engine::Image *imgTarget;
     Engine::Sprite *dangerIndicator;
     Turret *preview;
@@ -72,6 +75,7 @@ public:
     void OnMouseMove(int mx, int my) override;
     void OnMouseUp(int button, int mx, int my) override;
     void OnKeyDown(int keyCode) override;
+    void ScoreUp();
     void Hit();
     int GetMoney() const;
     void EarnMoney(int money);
@@ -82,5 +86,7 @@ public:
     bool CheckSpaceValid(int x, int y);
     std::vector<std::vector<int>> CalculateBFSDistance();
     // void ModifyReadMapTiles();
+
+    
 };
 #endif   // PLAYSCENE_HPP

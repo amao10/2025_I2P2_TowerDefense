@@ -17,10 +17,16 @@ protected:
     float speed;
     float hp;
     int money;
+    
     PlayScene *getPlayScene();
     virtual void OnExplode();
 
+    float slowTimer = 0;
+    bool slowed = false;
+    float originalSpeed;
+
 public:
+    void Slow(float duration);//凍住敵人
     float reachEndTime;
     std::list<Turret *> lockedTurrets;
     std::list<Bullet *> lockedBullets;
