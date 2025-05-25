@@ -134,4 +134,9 @@ namespace Engine {
             list.push_back(it.second);
         return list;
     }
+    std::list<std::pair<bool, IObject *>>& Engine::Group::GetObjectList() {
+        return objects;
+    }
+
+
 }

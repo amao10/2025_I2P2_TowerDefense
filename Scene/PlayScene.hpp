@@ -32,6 +32,7 @@ protected:
     int lives;
     int money;
     int SpeedMult;
+    bool shovelMode = false; // 鏟子模式，預設為關閉
 
 public:
     static int ScoreForWinner;//分數

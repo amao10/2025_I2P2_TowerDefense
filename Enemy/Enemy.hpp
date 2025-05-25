@@ -17,7 +17,7 @@ protected:
     float speed;
     float hp;
     int money;
-    
+    float Maxhp;
     PlayScene *getPlayScene();
     virtual void OnExplode();
 

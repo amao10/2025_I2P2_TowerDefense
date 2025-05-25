@@ -197,6 +197,7 @@ namespace Engine {
         /// </summary>
         /// <returns>A linked-list of all controls contained.</returns>
         std::list<IControl *> GetControls();
+        std::list<std::pair<bool, IObject *>>& GetObjectList();
     };
 }
 #endif   // GROUP_HPP

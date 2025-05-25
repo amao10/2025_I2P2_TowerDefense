@@ -27,6 +27,7 @@ using namespace std;
 #include "Turret/MachineGunTurret.hpp"
 #include "Turret/TurretButton.hpp"
 #include "Turret/SlowTurret.hpp"
+#include "Turret/shovel.hpp"
 #include "UI/Animation/DirtyEffect.hpp"
 #include "UI/Animation/Plane.hpp"
 #include "UI/Component/Label.hpp"
@@ -239,7 +240,32 @@ void PlayScene::OnMouseUp(int button, int mx, int my) {
         return;
     const int x = mx / BlockSize;
     const int y = my / BlockSize;
+
+    if (!(button & 1)) return; 
+    
+    if(shovelMode){
+        auto& objects = TowerGroup->GetObjectList();
+        for(auto it = objects.begin() ; it!=objects.end() ; ){
+            Engine::Point p = it->second->Position;
+            int tx = p.x/BlockSize;
+            int ty = p.y/BlockSize;
+            if(tx == x && ty == y){
+                Turret* turret = dynamic_cast<Turret*>(it->second);
+                if(turret)EarnMoney(turret->GetPrice()/2);
+                IObject* obj = it->second;
+                it = objects.erase(it);
+                mapState[y][x] = TILE_FLOOR;
+                delete obj;
+                shovelMode = false;
+                return;
+            }
+            else ++it;
+        }
+        shovelMode = false;
+    }
+
     if (button & 1) {
+        if (shovelMode) return; 
         if (mapState[y][x] != TILE_OCCUPIED ||(MapId==2)) {
             if (!preview)
                 return;
@@ -403,6 +429,13 @@ void PlayScene::ConstructUI() {
                            Engine::Sprite("play/turret-6.png", 1446, 162 - 8, 0, 0, 0, 0), 1446, 162, SlowTurret::Price);
     btn->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 2));
     UIGroup->AddNewControlObject(btn);
+    
+    // Button 4(鏟子)
+    btn = new TurretButton("play/floor.png", "play/dirt.png",
+                           Engine::Sprite("play/tower-base.png", 1522, 162, 0, 0, 0, 0),
+                           Engine::Sprite("play/shovel.png", 1522, 162 - 8, 0, 0, 0, 0), 1522, 162, 0);
+    btn->SetOnClickCallback(std::bind(&PlayScene::UIBtnClicked, this, 99)); // 99 for shovel
+    UIGroup->AddNewControlObject(btn);                    
 
     int w = Engine::GameEngine::GetInstance().GetScreenSize().x;
     int h = Engine::GameEngine::GetInstance().GetScreenSize().y;
@@ -415,12 +448,29 @@ void PlayScene::ConstructUI() {
 void PlayScene::UIBtnClicked(int id) {
     if (preview)
         UIGroup->RemoveObject(preview->GetObjectIterator());
-    if (id == 0 && money >= MachineGunTurret::Price)
+    // if (id == 99) {//99是鏟子
+    //     shovelMode = true;
+    //     imgTarget->Visible = false; // 不需要鏟子的 preview
+    //     return;
+    // } else {
+    //     shovelMode = false;
+    // }
+    if (id == 0 && money >= MachineGunTurret::Price){
         preview = new MachineGunTurret(0, 0);
-    else if (id == 1 && money >= LaserTurret::Price)
+        shovelMode = false;
+    }
+    else if (id == 1 && money >= LaserTurret::Price){
         preview = new LaserTurret(0, 0);
-    else if(id == 2 && money >= SlowTurret::Price)
+        shovelMode = false;
+    }
+    else if(id == 2 && money >= SlowTurret::Price){
         preview = new SlowTurret(0, 0);
+        shovelMode = false;
+    }
+    else if(id == 99 && money >= 0){
+        preview = new Shovel(0,0);
+        shovelMode = true;
+    }
     if (!preview)
         return;
     preview->Position = Engine::GameEngine::GetInstance().GetMousePosition();

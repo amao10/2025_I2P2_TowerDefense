@@ -13,6 +13,8 @@
 #include "UI/Component/Label.hpp"
 #include "UI/Component/Slider.hpp"
 #include "Scene/SettingsScene.hpp"
+#include "Scene/ScoreBoardScene.hpp"
+
 
 void StageSelectScene::Initialize() {
     int w = Engine::GameEngine::GetInstance().GetScreenSize().x;
@@ -58,6 +60,7 @@ void StageSelectScene::PlayOnClick(int stage) {
     Engine::GameEngine::GetInstance().ChangeScene("play");
 }
 void StageSelectScene::ScoreboardOnClick() {
+    ScoreBoardScene::isloading = 0;
     Engine::GameEngine::GetInstance().ChangeScene("scoreboard-scene");
 }
 void StageSelectScene::BGMSlideOnValueChanged(float value) {

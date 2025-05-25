@@ -33,7 +33,7 @@ void Enemy::OnExplode() {
         getPlayScene()->GroundEffectGroup->AddNewObject(new DirtyEffect("play/dirty-" + std::to_string(distId(rng)) + ".png", dist(rng), Position.x, Position.y));
     }
 }
-Enemy::Enemy(std::string img, float x, float y, float radius, float speed, float hp, int money) : Engine::Sprite(img, x, y), speed(speed), hp(hp), money(money) {
+Enemy::Enemy(std::string img, float x, float y, float radius, float speed, float hp, int money) : Engine::Sprite(img, x, y), speed(speed), hp(hp), money(money),Maxhp(hp) {
     CollisionRadius = radius;
     reachEndTime = 0;
     originalSpeed = speed;
@@ -131,6 +131,38 @@ void Enemy::Draw() const {
         // Draw collision radius.
         al_draw_circle(Position.x, Position.y, CollisionRadius, al_map_rgb(255, 0, 0), 2);
     }
+
+    //血條
+    const int barWidth = 40;
+    const int barHeight = 5;
+    float hpRatio = hp / (float)Maxhp;
+
+    // 血條背景（灰色）
+    al_draw_filled_rectangle(
+        Position.x - barWidth / 2,
+        Position.y + GetBitmapHeight() / 2 + 5,        // 敵人正下方5像素處開始畫
+        Position.x + barWidth / 2,
+        Position.y + GetBitmapHeight() / 2 + 5 + barHeight,
+        al_map_rgb(100, 100, 100)
+    );
+
+    // 血條前景（紅色）
+    al_draw_filled_rectangle(
+        Position.x - barWidth / 2,
+        Position.y + GetBitmapHeight() / 2 + 5,
+        Position.x - barWidth / 2 + barWidth * hpRatio,
+        Position.y + GetBitmapHeight() / 2 + 5 + barHeight,
+        al_map_rgb(255, 0, 0)
+    );
+
+    // 血條邊框（黑色）
+    al_draw_rectangle(
+        Position.x - barWidth / 2,
+        Position.y + GetBitmapHeight() / 2 + 5,
+        Position.x + barWidth / 2,
+        Position.y + GetBitmapHeight() / 2 + 5 + barHeight,
+        al_map_rgb(0, 0, 0), 1.0
+    );
 }
 
 void Enemy::Slow(float duration) {
