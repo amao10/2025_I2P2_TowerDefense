@@ -60,7 +60,7 @@ void StageSelectScene::PlayOnClick(int stage) {
     Engine::GameEngine::GetInstance().ChangeScene("play");
 }
 void StageSelectScene::ScoreboardOnClick() {
-    ScoreBoardScene::isloading = 0;
+    ScoreBoardScene::isloading = 0;//讓每次到selectscene要按去scoreboard的button都會重新讀取
     Engine::GameEngine::GetInstance().ChangeScene("scoreboard-scene");
 }
 void StageSelectScene::BGMSlideOnValueChanged(float value) {
