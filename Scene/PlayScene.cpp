@@ -78,6 +78,9 @@ void PlayScene::Initialize() {
     ReadEnemyWave();
     mapDistance = CalculateBFSDistance();
     ConstructUI();
+    // add player
+    player = new Player(640, 416, 180, 100, 50, 10, 5);
+    GroundEffectGroup->AddNewObject(player);
     imgTarget = new Engine::Image("play/target.png", 0, 0);
     imgTarget->Visible = false;
     preview = nullptr;
@@ -92,6 +95,8 @@ void PlayScene::Terminate() {
     AudioHelper::StopBGM(bgmId);
     AudioHelper::StopSample(deathBGMInstance);
     deathBGMInstance = std::shared_ptr<ALLEGRO_SAMPLE_INSTANCE>();
+    delete player;
+    player = nullptr;
     IScene::Terminate();
 }
 
@@ -139,6 +144,8 @@ void PlayScene::Update(float deltaTime) {
     if (SpeedMult == 0)
         deathCountDown = -1;
     for (int i = 0; i < SpeedMult; i++) {
+        //update player
+        player->Update(deltaTime);
         IScene::Update(deltaTime);
         // Check if we should create new enemy.
         ticks += deltaTime;

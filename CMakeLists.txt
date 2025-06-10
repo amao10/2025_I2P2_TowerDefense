@@ -36,6 +36,10 @@ add_executable(2025_I2P2_TowerDefense
     Enemy/MiniEnemy.cpp
     Enemy/MiniEnemy.hpp
 
+    #player
+    Player/Player.hpp
+    Player/Player.cpp
+    
     Engine/Allegro5Exception.cpp
     Engine/Allegro5Exception.hpp
     Engine/AudioHelper.cpp

@@ -8,7 +8,7 @@
 
 #include "Engine/IScene.hpp"
 #include "Engine/Point.hpp"
-
+#include "Player/Player.hpp"
 class Turret;
 namespace Engine {
     class Group;
@@ -33,6 +33,7 @@ protected:
     int money;
     int SpeedMult;
     bool shovelMode = false; // 鏟子模式，預設為關閉
+    Player* player;
 
 public:
     static int ScoreForWinner;//分數
