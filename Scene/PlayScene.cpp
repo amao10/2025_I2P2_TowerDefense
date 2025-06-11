@@ -22,7 +22,7 @@ using namespace std;
 #include "Engine/Group.hpp"
 #include "Engine/LOG.hpp"
 #include "Engine/Resources.hpp"
-#include "PlayScene.hpp"
+#include "Scene/PlayScene.hpp"
 #include "Turret/LaserTurret.hpp"
 #include "Turret/MachineGunTurret.hpp"
 #include "Turret/TurretButton.hpp"
@@ -72,6 +72,7 @@ void PlayScene::Initialize() {
     AddNewObject(EnemyGroup = new Group());
     AddNewObject(BulletGroup = new Group());
     AddNewObject(EffectGroup = new Group());
+    AddNewObject(PickupGroup = new Group());
     // Should support buttons.
     AddNewControlObject(UIGroup = new Group());
     ReadMap();

@@ -86,3 +86,12 @@ void Turret::Draw() const {
 int Turret::GetPrice() const {
     return price;
 }
+
+void Turret::Hit(float damage) {
+    hp -= damage;
+    if (hp <= 0) {
+        getPlayScene()->TowerGroup->RemoveObject(objectIterator);
+        //AudioHelper::PlayAudio("explosion.wav");
+        // 如果你有砲塔爆炸動畫可以在這裡加
+    }
+}

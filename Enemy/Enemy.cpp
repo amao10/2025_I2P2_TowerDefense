@@ -19,6 +19,8 @@
 #include "UI/Animation/DirtyEffect.hpp"
 #include "UI/Animation/ExplosionEffect.hpp"
 
+
+
 PlayScene *Enemy::getPlayScene() {
     return dynamic_cast<PlayScene *>(Engine::GameEngine::GetInstance().GetActiveScene());
 }
@@ -94,6 +96,7 @@ void Enemy::Update(float deltaTime) {
             speed = originalSpeed; // 恢復原本速度
         }
     }
+
     // Pre-calculate the velocity.
     float remainSpeed = speed * deltaTime;
     while (remainSpeed != 0) {
@@ -173,3 +176,5 @@ void Enemy::Slow(float duration) {
     slowTimer = duration;
     speed = 0.000001; // 停下來(不能設成0)
 }
+
+

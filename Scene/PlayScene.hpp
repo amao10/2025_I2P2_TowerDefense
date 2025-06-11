@@ -56,6 +56,7 @@ public:
     Group *EnemyGroup;
     Group *EffectGroup;
     Group *UIGroup;
+    Group* PickupGroup;
     Engine::Label *UIMoney;
     Engine::Label *UILives;
     Engine::Label* UIScore;

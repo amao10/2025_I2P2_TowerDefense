@@ -5,5 +5,6 @@
 class SoldierEnemy : public Enemy {
 public:
     SoldierEnemy(int x, int y);
+    void OnExplode() override;
 };
 #endif   // SOLDIERENEMY_HPP
