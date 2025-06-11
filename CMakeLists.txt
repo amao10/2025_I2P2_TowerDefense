@@ -60,6 +60,9 @@ add_executable(2025_I2P2_TowerDefense
     Engine/Resources.hpp
     Engine/Sprite.cpp
     Engine/Sprite.hpp
+
+    Map/MapSystem.hpp
+    Map/MapSystem.cpp
     
     # TODO HACKATHON-2 (3/3): Add the new scene source files here
     Scene/LoseScene.cpp
@@ -76,6 +79,8 @@ add_executable(2025_I2P2_TowerDefense
     Scene/SettingsScene.cpp
     Scene/ScoreBoardScene.hpp
     Scene/ScoreBoardScene.cpp
+    Scene/TestScene.hpp
+    Scene/TestScene.cpp
 
 
     Turret/LaserTurret.cpp
@@ -106,6 +111,8 @@ add_executable(2025_I2P2_TowerDefense
     UI/Component/Label.hpp
     UI/Component/Slider.cpp
     UI/Component/Slider.hpp
+    UI/UIManager.cpp
+    UI/UIManager.hpp
     
     main.cpp
 )
