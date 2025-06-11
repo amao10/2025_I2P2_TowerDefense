@@ -25,6 +25,7 @@ protected:
     bool slowed = false;
     float originalSpeed;
 
+
 public:
     void Slow(float duration);//凍住敵人
     float reachEndTime;

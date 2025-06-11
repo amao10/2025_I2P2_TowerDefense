@@ -1,12 +1,13 @@
 #include "SplitterEnemy.hpp"
 #include "MiniEnemy.hpp"       // 新增的迷你敵人
 #include "Scene/PlayScene.hpp"
-#include "bits/stdc++.h"
+// #include "bits/stdc++.h"
 #include "Enemy.hpp"
 
 SplitterEnemy::SplitterEnemy(int x, int y) :
     Enemy("play/enemy-6.png", x, y, 12, 45, 15, 500) {
     // 半徑、速度、HP、金錢可自由調整
+    
 }
 
 // void SplitterEnemy::OnExplode() {
