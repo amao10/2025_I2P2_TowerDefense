@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include "Teleport.hpp"
 
 using namespace Engine;
 
@@ -83,6 +84,8 @@ void MapSystem::unloadMap() {
 bool MapSystem::loadMap(const std::string& mapFile,
                         const std::string& objectFile)
 {
+    std::cerr << "[DEBUG] loadMap: map=" << mapFile
+              << " obj=" << objectFile << "\n";
     unloadMap();
     parseTileData(mapFile);
     parseObjectData(objectFile);
@@ -148,10 +151,17 @@ void MapSystem::parseObjectData(const std::string& filename) {
             ropes.push_back(r);
         }
         else if (type == 'T') {
-            TeleportPoint tp; ss >> tp.x >> tp.y;
-            tp.targetMapId = 0;
-            tp.targetX = tp.x; tp.targetY = tp.y;
+            TeleportPoint tp;
+            ss
+            >> tp.x
+            >> tp.y
+            >> tp.targetMapFile
+            >> tp.targetObjFile
+            >> tp.targetX
+            >> tp.targetY;
             teleports.push_back(tp);
+            std::cerr << "[DEBUG] load T at ("<<tp.x<<","<<tp.y<<") -> "
+              << tp.targetMapFile << "\n";
         }
     }
 }
@@ -200,11 +210,25 @@ void MapSystem::render(ALLEGRO_BITMAP* buffer) {
     // 绘制瓦片
     if (tileGroup_) tileGroup_->Draw();
 
+    // if (TeleportTrigger::bmp_) {
+    //     for (const auto& tp : teleports) {
+    //         float px = tp.x * tileWidth;
+    //         float py = tp.y * tileHeight;
+    //         al_draw_scaled_bitmap(
+    //             TeleportTrigger::bmp_,         // 由 TeleportTrigger 预加载的贴图
+    //             0, 0,
+    //             al_get_bitmap_width(TeleportTrigger::bmp_),
+    //             al_get_bitmap_height(TeleportTrigger::bmp_),
+    //             px, py,
+    //             tileWidth, tileHeight,
+    //             0
+    //         );
+    //     }
+    // }
+
     // 重置变换（后面绘制不跟随相机的内容时要用）
     al_identity_transform(&trans);
     al_use_transform(&trans);
-
-    // TODO: 绘制 ropes/teleports…
 }
 
 

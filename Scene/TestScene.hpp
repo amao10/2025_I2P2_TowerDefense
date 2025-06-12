@@ -9,6 +9,7 @@
 #include "Engine/Point.hpp"
 
 #include "Map/MapSystem.hpp"
+#include "Map/Teleport.hpp"
 #include "Player/Player.hpp"
 
 
@@ -37,4 +38,7 @@ private:
     float elapsedTime_;
     Player* player = nullptr;
 
+    void ClearTeleportTriggers();
+    void CreateTeleportTriggers();
+    std::vector<IObject*> teleportTriggers_;
 };
