@@ -6,7 +6,7 @@
 #include "Engine/AudioHelper.hpp"
 #include "Engine/Group.hpp"
 #include "Engine/Point.hpp"
-#include "Shovel.hpp"
+#include "shovel.hpp"
 #include "Scene/PlayScene.hpp"
 
 const int Shovel::Price = 0;
