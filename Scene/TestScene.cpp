@@ -71,14 +71,37 @@ void TestScene::Terminate() {
 
 void TestScene::Update(float deltaTime) {
     elapsedTime_ += deltaTime;
-    // 固定鏡頭在 (0,0) 以測試整張地圖的渲染
-    mapSystem_->update(deltaTime, 0, 0);
+    // 1. 先 update 場景（包含玩家）
     IScene::Update(deltaTime);
+    // 2. 再把玩家新座標傳給 MapSystem
+    int px = static_cast<int>(player->Position.x);
+    int py = static_cast<int>(player->Position.y);
+    mapSystem_->update(deltaTime, px, py);
 }
 
+
+// void TestScene::Update(float deltaTime) {
+//     elapsedTime_ += deltaTime;
+//     // 将 player 世界坐标传给 MapSystem
+//     int px = static_cast<int>(player->Position.x);
+//     int py = static_cast<int>(player->Position.y);
+//     mapSystem_->update(deltaTime, px, py);  // 原来是 (dt, 0, 0)
+//     IScene::Update(deltaTime);
+// }
+
+
 void TestScene::Draw() const {
-    // 清空螢幕
-    IScene::Draw();
-    // 直接將地圖繪製到後備緩衝區
+    // 1. 自行清空螢幕
+    al_clear_to_color(al_map_rgb(0, 0, 0));
+    // 2. 先把地圖畫出來
     mapSystem_->render(nullptr);
+    // 3. 再把玩家和其他場景物件畫上去
+    Group::Draw();   // 或者 Engine::Group::Draw();
 }
+
+// void TestScene::Draw() const {
+//     // 清空螢幕
+//     IScene::Draw();
+//     // 直接將地圖繪製到後備緩衝區
+//     mapSystem_->render(nullptr);
+// }

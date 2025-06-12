@@ -167,20 +167,56 @@ std::string MapSystem::pathForTileId(int id) {
     }
 }
 
-void MapSystem::update(float dt, int playerX, int playerY) {
-    // TestScene 相机固定 (0,0)，这里可先不动
-    (void)dt; (void)playerX; (void)playerY;
+void MapSystem::update(float /*dt*/, int playerX, int playerY) {
+    // 让摄像机中心对准玩家
+    cameraX = playerX - screenWidth  / 2;
+    cameraY = playerY - screenHeight / 2;
+    // 计算最大可移动范围
+    float maxX = mapWidth  * tileWidth  - screenWidth;
+    float maxY = mapHeight * tileHeight - screenHeight;
+    // 限制在 [0, max]
+    cameraX = std::max(0.0f, std::min(cameraX, maxX));
+    cameraY = std::max(0.0f, std::min(cameraY, maxY));
 }
 
+
+// void MapSystem::update(float dt, int playerX, int playerY) {
+//     // TestScene 相机固定 (0,0)，这里可先不动
+//     (void)dt; (void)playerX; (void)playerY;
+// }
+
+// MapSystem.cpp
 void MapSystem::render(ALLEGRO_BITMAP* buffer) {
-    // 先切到 backbuffer 或 指定的 buffer
+    // 切到 backbuffer 或 指定 buffer
     if (buffer) al_set_target_bitmap(buffer);
     else        al_set_target_backbuffer(display_);
 
-    // 因为 TestScene 锁在 (0,0)，直接 draw 整个组
+    // 构造摄像机变换
+    ALLEGRO_TRANSFORM trans;
+    al_identity_transform(&trans);
+    al_translate_transform(&trans, -cameraX, -cameraY);
+    al_use_transform(&trans);
+
+    // 绘制瓦片
     if (tileGroup_) tileGroup_->Draw();
+
+    // 重置变换（后面绘制不跟随相机的内容时要用）
+    al_identity_transform(&trans);
+    al_use_transform(&trans);
 
     // TODO: 绘制 ropes/teleports…
 }
+
+
+// void MapSystem::render(ALLEGRO_BITMAP* buffer) {
+//     // 先切到 backbuffer 或 指定的 buffer
+//     if (buffer) al_set_target_bitmap(buffer);
+//     else        al_set_target_backbuffer(display_);
+
+//     // 因为 TestScene 锁在 (0,0)，直接 draw 整个组
+//     if (tileGroup_) tileGroup_->Draw();
+
+//     // TODO: 绘制 ropes/teleports…
+// }
 
 // checkTeleport 同原本不变…
