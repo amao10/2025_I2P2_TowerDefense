@@ -72,6 +72,8 @@ add_executable(2025_I2P2_TowerDefense
 
     Map/MapSystem.hpp
     Map/MapSystem.cpp
+    Map/Teleport.hpp
+    Map/Teleport.cpp
     
     # TODO HACKATHON-2 (3/3): Add the new scene source files here
     Scene/LoseScene.cpp
