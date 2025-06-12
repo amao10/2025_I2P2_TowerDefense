@@ -20,6 +20,7 @@ using namespace std;
 #include "UI/Component/Label.hpp"
 
 #include "TestScene.hpp"
+#include "Player/Player.hpp"
 
 TestScene::TestScene()
     : mapSystem_(nullptr), elapsedTime_(0.0f)
@@ -48,7 +49,8 @@ void TestScene::Initialize() {
         std::cerr << "[TestScene] loadMap exception: " << e.what() << std::endl;
         // 视情况可以提前返回，或保留空地图继续执行
     }
-
+    player = new Player(400, 200, 300, 100, 50, 30, 10); // 可調位置和屬性
+    AddNewObject(player); // 讓 engine 控制 update & draw
     // 4. 初始化计时器
     elapsedTime_ = 0.0f;
 }
@@ -59,6 +61,11 @@ void TestScene::Terminate() {
         delete mapSystem_;
         mapSystem_ = nullptr;
     }
+    if (player) {
+        delete player;
+        player = nullptr;
+    }
+
     IScene::Terminate();
 }
 
@@ -66,6 +73,7 @@ void TestScene::Update(float deltaTime) {
     elapsedTime_ += deltaTime;
     // 固定鏡頭在 (0,0) 以測試整張地圖的渲染
     mapSystem_->update(deltaTime, 0, 0);
+    IScene::Update(deltaTime);
 }
 
 void TestScene::Draw() const {

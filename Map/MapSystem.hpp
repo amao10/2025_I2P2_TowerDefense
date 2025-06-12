@@ -31,6 +31,8 @@ public:
     void render(ALLEGRO_BITMAP* buffer = nullptr);
     int checkTeleport(int playerX, int playerY,
                       int &outX, int &outY);
+    //revise
+    const std::vector<std::vector<int>>& GetTileData() const { return tileData; }
 
 private:
     void parseTileData(const std::string& filename);
