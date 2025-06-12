@@ -12,7 +12,9 @@
 // #include "Resources.hpp"
 
 namespace Engine {
-    const std::string Resources::bitmapPathPrefix = "Resource/images/";
+    //const std::string Resources::bitmapPathPrefix = "Resource/images/";
+    //revise bitmapPathPrefix
+    const std::string Resources::bitmapPathPrefix = "../2025_I2P2_TowerDefense/Resource/images/";
     const std::string Resources::fontPathPrefix = "Resource/fonts/";
     const std::string Resources::samplePathPrefix = "Resource/audios/";
     Resources::Resources() = default;

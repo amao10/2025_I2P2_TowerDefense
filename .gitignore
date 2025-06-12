@@ -13,3 +13,24 @@ build
 
 # Others
 log.txt
+
+#新增
+# 忽略 build 資料夾與可執行檔
+build/
+*.exe
+*.o
+*.out
+
+# 忽略 VSCode 設定檔
+.vscode/
+c_cpp_properties.json
+c_cpp_properties.template.jsonc
+
+# macOS / Windows 系統檔案
+.DS_Store
+Thumbs.db
+
+# 編譯中介檔與快取
+*.log
+*.tmp
+*.obj

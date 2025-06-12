@@ -9,10 +9,14 @@
 #include "Engine/Point.hpp"
 
 #include "Map/MapSystem.hpp"
+#include "Player/Player.hpp"
 
 
 class TestScene final : public Engine::IScene{
 public:
+
+    MapSystem* GetMapSystem() const { return mapSystem_; }
+
     TestScene();
     ~TestScene();
 
@@ -31,5 +35,6 @@ public:
 private:
     MapSystem* mapSystem_;
     float elapsedTime_;
+    Player* player = nullptr;
 
 };
