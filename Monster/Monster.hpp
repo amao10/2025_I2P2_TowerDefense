@@ -32,7 +32,7 @@ public:
     void UpdatePatrol(float deltaTime, const MapSystem* mapSystem);
     PatrolMode patrolMode = PatrolMode::None;
     bool movingRight = true;
-    float moveSpeed = 50.0f;
+    float moveSpeed = 25.0f;
     bool flipHorizontal;
 
 protected:   
@@ -42,6 +42,7 @@ protected:
     int money;
     float Maxhp;
     float reachEndTime;
+    float turnAroundCooldown; 
     TestScene* getTestScene();
     virtual void OnExplode();
 

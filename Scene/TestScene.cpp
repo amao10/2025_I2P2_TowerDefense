@@ -89,13 +89,15 @@ void TestScene::Initialize() {
         Engine::Point(225, 295),  // Platform 1, standing on tile (2,1)
         Engine::Point(135, 495), // Platform 3, standing on tile (1,6)
         Engine::Point(495, 515), // Platform 4, standing on tile (5,8)
-        Engine::Point(675, 635)  
+        Engine::Point(875, 635),
+        Engine::Point(975, 435)   
     };
     spawnTypes = {
         MonsterType::Mushroom,
         MonsterType::Mushroom,
         MonsterType::Snail,
-        MonsterType::Snail
+        MonsterType::Snail,
+        MonsterType::Mushroom
     };
     monsters.resize(spawnPoints.size(), nullptr);
     respawnTimers.resize(spawnPoints.size(), 0.0f);
@@ -110,7 +112,7 @@ void TestScene::Initialize() {
             // 為怪物設定巡邏模式和速度
             monster->patrolMode = Monster::PatrolMode::BottomRow;
             monster->movingRight = true;  // 初始向右移動
-            monster->moveSpeed = 120.0f;  // 設定巡邏速度 (例如 120 像素/秒)
+            monster->moveSpeed = 50.0f;  // 設定巡邏速度 (例如 120 像素/秒)
 
             MonsterGroup->AddNewObject(monster);
             monsters[i] = monster;
