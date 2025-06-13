@@ -8,6 +8,8 @@
 #include <iostream>
 #include <algorithm>
 #include "Teleport.hpp"
+#include "Engine/LOG.hpp"
+#include "Engine/Point.hpp"
 
 using namespace Engine;
 
@@ -51,6 +53,12 @@ public:
     }
 };
 
+MonsterType StringToMonsterType(const std::string& s) {
+    if (s == "MUSHROOM") return MonsterType::Mushroom;
+    if (s == "SNAIL") return MonsterType::Snail;
+    // Add other monster types as needed
+    return MonsterType::UNKNOWN;
+}
 
 //——— MapSystem 方法实现 ———
 
@@ -79,17 +87,19 @@ void MapSystem::unloadMap() {
     tileData.clear();
     ropes.clear();
     teleports.clear();
+    monsterSpawns.clear();
 }
 
 bool MapSystem::loadMap(const std::string& mapFile,
-                        const std::string& objectFile)
+                        const std::string& objectFile,        // For teleports
+                        const std::string& monsterSpawnFile)
 {
     std::cerr << "[DEBUG] loadMap: map=" << mapFile
               << " obj=" << objectFile << "\n";
     unloadMap();
     parseTileData(mapFile);
     parseObjectData(objectFile);
-
+    
     // 1. 新建一个 Group
     tileGroup_ = new Group();
 
@@ -109,6 +119,14 @@ bool MapSystem::loadMap(const std::string& mapFile,
             float py = y * tileHeight;
             tileGroup_->AddNewObject(new MapTile(bmp, px, py, tileWidth, tileHeight));
         }
+    }
+    try {
+        parseMonsterSpawnData(monsterSpawnFile);
+    } catch (const std::exception& e) {
+        Engine::LOG(Engine::INFO) << "Failed to load monster spawn data from " << monsterSpawnFile << ": " << e.what();
+        // Decide if map loading should fail if monster spawn file is missing/corrupt
+        // For now, let's return false.
+        return false;
     }
     return true;
 }
@@ -156,6 +174,7 @@ void MapSystem::parseObjectData(const std::string& filename) {
             >> tp.y
             >> tp.targetMapFile
             >> tp.targetObjFile
+            >> tp.targetMonsterSpawnFile
             >> tp.targetX
             >> tp.targetY;
             teleports.push_back(tp);
@@ -163,6 +182,52 @@ void MapSystem::parseObjectData(const std::string& filename) {
               << tp.targetMapFile << "\n";
         }
     }
+}
+
+void MapSystem::parseMonsterSpawnData(const std::string& filename) {
+    monsterSpawns.clear(); // Clear existing monster spawns
+
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        throw std::ios_base::failure("Failed to open monster spawn file: " + filename);
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        std::stringstream ss(line);
+        std::string typeStr;
+        ss >> typeStr;
+
+        if (typeStr == "MONSTER_SPAWN") {
+            int id;
+            float x, y, speed, hp; // Assuming speed and hp are floats from MonsterSpawnInfo
+            int damage; // Assuming damage is an int from MonsterSpawnInfo
+            std::string monsterTypeStr;
+
+            // This must match your testMonsterSpawns.txt format:
+            // MONSTER_SPAWN [ID] [X_pixel] [Y_pixel] [MonsterTypeString] [Speed] [HP] [Damage]
+            // Example: MONSTER_SPAWN 1 225 295 MUSHROOM 30.0 50.0 15
+            ss >> id >> x >> y >> monsterTypeStr >> speed >> hp >> damage; 
+
+            MonsterType type = StringToMonsterType(monsterTypeStr);
+            if (type == MonsterType::UNKNOWN) {
+                //Engine::LOG(Engine::WARN) << "Unknown monster type '" << monsterTypeStr << "' in " << filename;
+                continue;
+            }
+            
+            monsterSpawns.emplace_back(Engine::Point(x, y), type, speed, hp, damage); // Pass all parsed parameters
+            Engine::LOG(Engine::INFO) << "Loaded MONSTER_SPAWN: ID=" << id << ", Pos=(" << x << "," << y 
+                                       << "), Type=" << monsterTypeStr << ", Speed=" << speed 
+                                       << ", HP=" << hp << ", Damage=" << damage;
+        } else {
+            Engine::LOG(Engine::WARN) << "Unexpected entry in monster spawn file: " << line;
+        }
+    }
+    file.close();
 }
 
 std::string MapSystem::pathForTileId(int id) {

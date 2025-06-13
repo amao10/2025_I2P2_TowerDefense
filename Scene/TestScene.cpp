@@ -46,7 +46,7 @@ void TestScene::Initialize() {
 
     // 3. 嘗試載入地圖
     try {
-        mapSystem_->loadMap("Resource/testMap.txt", "Resource/testObject.txt");
+        mapSystem_->loadMap("Resource/testMap.txt", "Resource/testObject.txt","Resource/testMonsterSpawns.txt");
         Engine::LOG(Engine::INFO) << "Map loaded successfully.";
         Engine::LOG(Engine::INFO) << "Confirmed Map height is: " << mapSystem_->mapHeight;
     } catch (const std::exception& e) {
@@ -67,60 +67,8 @@ void TestScene::Initialize() {
     AddNewObject(MonsterGroup = new Group());
     AddNewObject(EffectGroup = new Group());
     AddNewObject(PickupGroup = new Group());
-
-    // player = new Player(400, 200, 300, 100, 50, 30, 10);
-    // AddNewObject(player);
-
-    // --- 關鍵修正點：根據地圖高度和瓦片大小計算精確的 Y 座標 ---
-    const int tileSize = mapSystem_->tileHeight; // 從 MapSystem 取得瓦片高度 (60)
-
-    // 怪物圖片的實際像素高度，您已確認為 50x50
-    float monsterBitmapHeight = 50.0f; // **這裡設定為 50.0f**
-
-    // 計算最底層瓦片的頂部 Y 座標 (mapHeight 是 12)
-    float bottomRowTopY = (mapSystem_->mapHeight - 1) * tileSize; // (12 - 1) * 60 = 11 * 60 = 660
-
-    // 計算怪物圖片中心點的 Y 座標，使其腳部剛好落在 bottomRowTopY
-    float adjustedSpawnY = bottomRowTopY - (monsterBitmapHeight / 2.0f); // 660 - (50 / 2.0f) = 635
-
-    // 5. 初始化怪物生成點與類型
-    spawnPoints = {
-        // 使用計算出的調整後 Y 座標 635
-        Engine::Point(225, 295),  // Platform 1, standing on tile (2,1)
-        Engine::Point(135, 495), // Platform 3, standing on tile (1,6)
-        Engine::Point(495, 515), // Platform 4, standing on tile (5,8)
-        Engine::Point(875, 635),
-        Engine::Point(975, 435)   
-    };
-    spawnTypes = {
-        MonsterType::Mushroom,
-        MonsterType::Mushroom,
-        MonsterType::Snail,
-        MonsterType::Snail,
-        MonsterType::Mushroom
-    };
-    monsters.resize(spawnPoints.size(), nullptr);
-    respawnTimers.resize(spawnPoints.size(), 0.0f);
-
-    // 生成初始怪物
-    for (size_t i = 0; i < spawnPoints.size(); ++i) {
-        Engine::Point pos = spawnPoints[i];
-        Engine::LOG(Engine::INFO) << "Spawning monster at (" << pos.x << ", " << pos.y << ") type: " << (int)spawnTypes[i];
-        
-        Monster* monster = createMonsterByType(spawnTypes[i], pos.x, pos.y);
-        if (monster) {
-            // 為怪物設定巡邏模式和速度
-            monster->patrolMode = Monster::PatrolMode::BottomRow;
-            monster->movingRight = true;  // 初始向右移動
-            monster->moveSpeed = 30.0f;  // 設定巡邏速度 (例如 120 像素/秒)
-
-            MonsterGroup->AddNewObject(monster);
-            monsters[i] = monster;
-            Engine::LOG(Engine::INFO) << "Monster " << i << " added to MonsterGroup, patrol mode set.";
-        } else {
-            Engine::LOG(Engine::ERROR) << "Monster creation failed for type " << (int)spawnTypes[i];
-        }
-    }
+    LoadMonstersForCurrentMap();
+    
 
     elapsedTime_ = 0.0f;
     Engine::LOG(Engine::INFO) << "TestScene initialized successfully.";
@@ -195,51 +143,91 @@ void TestScene::Update(float deltaTime) {
         if (tp.x == gx && tp.y == gy) {
             // 1. 清除舊觸發器
             ClearTeleportTriggers();
+            for (Monster* m : monsters) {
+                if (m) delete m; // 確保刪除怪物物件
+            }
+            monsters.clear();
+            MonsterGroup->Clear();// 清空 Group，但不會 delete 記憶體
+            respawnTimers.clear();
             // 2. 換圖
             mapSystem_->unloadMap();
-            mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile);
+            mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile,tp.targetMonsterSpawnFile);
             // 3. 重設玩家位置
             player->Position.x = static_cast<float>(tp.targetX);
             player->Position.y = static_cast<float>(tp.targetY);
+            // 5. 為新地圖生成怪物 (重要！)
+            LoadMonstersForCurrentMap();
             // 4. 重建觸發器（新的地圖裡可能有新的 teleports）
             CreateTeleportTriggers();
             break;  // 一次只能觸發一個
         }
     }
-    // 怪物復活邏輯
+    // 怪物復活邏輯 - 需要修改為基於 mapSystem_->GetMonsterSpawns() 來獲取原始生成點
+    // 您不再需要全局的 spawnPoints 和 spawnTypes
     for (size_t i = 0; i < monsters.size(); ++i) {
         if (monsters[i] == nullptr || monsters[i]->Removed()) {
             respawnTimers[i] += deltaTime;
             if (respawnTimers[i] >= 5.0f) {
-                Engine::Point pos = spawnPoints[i];
-                Engine::LOG(Engine::INFO) << "Monster respawn at (" << pos.x << ", " << pos.y << ") type: " << (int)spawnTypes[i];
-                
-                Monster* monster = createMonsterByType(spawnTypes[i], pos.x, pos.y);
-                if (monster) {
-                    // 復活的怪物也要設定巡邏模式和速度
-                    monster->patrolMode = Monster::PatrolMode::BottomRow;
-                    monster->movingRight = true;
-                    monster->moveSpeed = 30.0f;
+                // 從 mapSystem_ 中獲取對應的原始生成資訊
+                const auto& monsterSpawns = mapSystem_->GetMonsterSpawns();
+                if (i < monsterSpawns.size()) { // 確保索引有效
+                    const MonsterSpawnInfo& spawnInfo = monsterSpawns[i];
+                    Engine::LOG(Engine::INFO) << "Monster respawn at (" << spawnInfo.position.x << ", " << spawnInfo.position.y << ") type: " << (int)spawnInfo.type;
 
-                    // 如果不需要尋路，這行可以移除
-                    // auto mapDistance = mapSystem_->GetMapDistance();
-                    // if (!mapDistance.empty() && !mapDistance[0].empty()) {
-                    //     monster->UpdatePath(mapDistance);
-                    // }
+                    Monster* monster = createMonsterByType(spawnInfo.type, spawnInfo.position.x, spawnInfo.position.y);
+                    if (monster) {
+                        monster->patrolMode = Monster::PatrolMode::BottomRow;
+                        monster->movingRight = true;
+                        // 這裡的速度應該從 spawnInfo 讀取，而不是硬編碼
+                        //monster->moveSpeed = spawnInfo.initialSpeed; // 使用從配置讀取的速度
 
-                    MonsterGroup->AddNewObject(monster);
-                    monsters[i] = monster;
-                    respawnTimers[i] = 0.0f;
-                    Engine::LOG(Engine::INFO) << "Monster " << i << " respawned and patrol mode set.";
+                        MonsterGroup->AddNewObject(monster);
+                        monsters[i] = monster;
+                        respawnTimers[i] = 0.0f;
+                        Engine::LOG(Engine::INFO) << "Monster " << i << " respawned and patrol mode set.";
+                    } else {
+                        Engine::LOG(Engine::ERROR) << "Monster respawn failed for type " << (int)spawnInfo.type;
+                    }
                 } else {
-                    Engine::LOG(Engine::ERROR) << "Monster respawn failed for type " << (int)spawnTypes[i];
+                    Engine::LOG(Engine::ERROR) << "Respawn index " << i << " out of bounds for current map monster spawns.";
                 }
             }
         }
     }
 }
 
+void TestScene::LoadMonstersForCurrentMap() {
+    // 清空之前地圖的怪物數據 (在切換地圖前已經做過了，這裡再加一層安全檢查)
+    for (Monster* m : monsters) {
+        if (m) delete m;
+    }
+    monsters.clear();
+    respawnTimers.clear();
+    MonsterGroup->Clear(); // 清空 Group
 
+    const auto& monsterSpawns = mapSystem_->GetMonsterSpawns();
+    monsters.resize(monsterSpawns.size(), nullptr);
+    respawnTimers.resize(monsterSpawns.size(), 0.0f);
+
+    // 根據當前地圖的怪物生成數據生成怪物
+    for (size_t i = 0; i < monsterSpawns.size(); ++i) {
+        const MonsterSpawnInfo& spawnInfo = monsterSpawns[i];
+        Engine::LOG(Engine::INFO) << "Loading monster at (" << spawnInfo.position.x << ", " << spawnInfo.position.y << ") type: " << (int)spawnInfo.type;
+
+        Monster* monster = createMonsterByType(spawnInfo.type, spawnInfo.position.x, spawnInfo.position.y);
+        if (monster) {
+            monster->patrolMode = Monster::PatrolMode::BottomRow;
+            monster->movingRight = true;
+            //monster->moveSpeed = spawnInfo.initialSpeed; // 使用從配置讀取的速度
+
+            MonsterGroup->AddNewObject(monster);
+            monsters[i] = monster;
+            Engine::LOG(Engine::INFO) << "Monster " << i << " loaded to MonsterGroup, patrol mode set.";
+        } else {
+            Engine::LOG(Engine::ERROR) << "Monster creation failed for type " << (int)spawnInfo.type;
+        }
+    }
+}
 void TestScene::Draw() const {
     al_clear_to_color(al_map_rgb(0, 0, 0));
     // 2. 先把地圖畫出來

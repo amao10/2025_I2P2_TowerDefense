@@ -9,6 +9,7 @@ struct TeleportPoint {
     int           y;              // 來源格子 Y
     std::string   targetMapFile;  // 目標地圖檔路徑
     std::string   targetObjFile;  // 目標物件檔路徑
+    std::string   targetMonsterSpawnFile; 
     int           targetX;        // 目標格子 X
     int           targetY;        // 目標格子 Y
 };

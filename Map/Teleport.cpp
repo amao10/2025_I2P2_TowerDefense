@@ -42,7 +42,7 @@ void TeleportTrigger::Update(float /*deltaTime*/) {
     {
         triggered_ = true;
         mapSystem_->unloadMap();
-        mapSystem_->loadMap(cfg_.targetMapFile, cfg_.targetObjFile);
+        mapSystem_->loadMap(cfg_.targetMapFile, cfg_.targetObjFile, cfg_.targetMonsterSpawnFile);
         player_->Position.x = static_cast<float>(cfg_.targetX);
         player_->Position.y = static_cast<float>(cfg_.targetY);
     }
