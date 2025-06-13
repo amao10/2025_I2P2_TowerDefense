@@ -4,7 +4,7 @@
 #include "Engine/Collider.hpp"
 #include "Engine/GameEngine.hpp"
 #include "Engine/Resources.hpp"
-
+#include "Engine/AudioHelper.hpp"
 
 
 TestScene* CoinPickup::getTestScene() {
@@ -40,5 +40,6 @@ void CoinPickup::Update(float deltaTime) {
         scene->GetPlayer()->coin++;
         //scene->GetPlayer()->GainExp(20);
         scene->PickupGroup->RemoveObject(objectIterator); // 拿掉自己
+        AudioHelper::PlayAudio("pickup.ogg");
     }
 }
