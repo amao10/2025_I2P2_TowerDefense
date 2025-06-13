@@ -11,6 +11,7 @@
 #include "UI/Component/Label.hpp"
 #include "Monster/Monster.hpp"
 
+
 Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
     : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y),
       speed(speed),
@@ -29,7 +30,7 @@ Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
     maxMp = 50 * level;
     this->hp = std::min(hp, maxHp);
     this->mp = std::min(mp, maxMp);
-
+    this->CollisionRadius = GetBitmapWidth() / 2.0f; 
     LoadAnimation();
 }
 

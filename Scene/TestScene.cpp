@@ -154,6 +154,42 @@ void TestScene::Update(float deltaTime) {
     int gx = px / tileW;
     int gy = (py + player->Size.y/2) / tileH;
 
+    // 更新 Player
+    if (player) {
+        player->Update(deltaTime);
+    }
+
+    // 更新所有怪物
+    MonsterGroup->Update(deltaTime); 
+
+    // --- 新增：玩家與怪物碰撞檢測及扣血邏輯 ---
+    if (player && MonsterGroup) {
+        // 獲取玩家的中心點
+        // 根據您的 Player::Draw() 判斷，player->Position 就是中心點
+        Engine::Point playerCenter = player->Position; 
+        float playerRadius = player->CollisionRadius;
+
+        for (auto& obj : MonsterGroup->GetObjects()) {
+            Monster* monster = dynamic_cast<Monster*>(obj);
+            if (monster && !monster->Removed()) {
+                // 獲取怪物的中心點
+                // 根據您的 Monster 構造函數和 Draw() 判斷，monster->Position 是左上角
+                Engine::Point monsterCenter = monster->Position + 
+                                              Engine::Point(monster->GetBitmapWidth() / 2.0f, monster->GetBitmapHeight() / 2.0f);
+                float monsterRadius = monster->CollisionRadius;
+
+                // 使用 Collider 進行圓形碰撞檢測
+                if (Engine::Collider::IsCircleOverlap(playerCenter, playerRadius, monsterCenter, monsterRadius)) {
+                    // 碰撞發生！
+                    // 接下來是處理玩家無敵幀和扣血的邏輯
+                    // 我沿用之前建議的 "Player 自身處理無敵幀" 的方式，因為這通常更健壯
+                    player->TakeDamage(monster->GetDamage()); 
+                    // AudioHelper::PlayAudio("player_hit.wav"); // 播放受傷音效
+                }
+            }
+        }
+    }
+
     // 偵測任何傳送點
     for (auto& tp : mapSystem_->GetTeleports()) {
         if (tp.x == gx && tp.y == gy) {
@@ -183,7 +219,7 @@ void TestScene::Update(float deltaTime) {
                     // 復活的怪物也要設定巡邏模式和速度
                     monster->patrolMode = Monster::PatrolMode::BottomRow;
                     monster->movingRight = true;
-                    monster->moveSpeed = 120.0f;
+                    monster->moveSpeed = 50.0f;
 
                     // 如果不需要尋路，這行可以移除
                     // auto mapDistance = mapSystem_->GetMapDistance();
@@ -202,17 +238,6 @@ void TestScene::Update(float deltaTime) {
         }
     }
 }
-
-
-// void TestScene::Update(float deltaTime) {
-//     elapsedTime_ += deltaTime;
-//     // 将 player 世界坐标传给 MapSystem
-//     int px = static_cast<int>(player->Position.x);
-//     int py = static_cast<int>(player->Position.y);
-//     mapSystem_->update(deltaTime, px, py);  // 原来是 (dt, 0, 0)
-//     IScene::Update(deltaTime);
-// }
-
 
 
 void TestScene::Draw() const {

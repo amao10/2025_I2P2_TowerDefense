@@ -24,7 +24,8 @@ public:
     void Update(float deltaTime) override;
     void Draw() const override;
     bool Removed() const;
-
+    int damageToPlayer; // 確保有這個成員變數
+    float attackCooldown;
     //Engine::Point velocity; // 怪物的速度，包含垂直速度
     bool onGround = false;  
     // 新增巡邏相關方法
@@ -34,6 +35,11 @@ public:
     bool movingRight = true;
     float moveSpeed = 25.0f;
     bool flipHorizontal;
+    int GetDamage() const { return damageToPlayer; } 
+
+    // 宣告 CanAttackPlayer() 和 ResetAttackCooldown()
+    bool CanAttackPlayer() const { return attackCooldown <= 0; }
+    void ResetAttackCooldown() { attackCooldown = 1.0f; }
 
 protected:   
     std::vector<Engine::Point> path;

@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "Engine/Sprite.hpp"
 #include "Engine/Point.hpp"
+#include "Engine/Collider.hpp" 
 
 class Player : public Engine::Sprite {
 protected:
@@ -81,7 +82,7 @@ public:
     bool UseMP(int MPcost); //-MP
     void Heal(int amount); //+HP
     void RecoverMP(int amount); //+MP
-
+    float CollisionRadius;
 
 };
 

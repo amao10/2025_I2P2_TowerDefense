@@ -45,7 +45,8 @@ Monster::Monster(std::string img, float x, float y, float radius, float speed, f
     // 初始化新增的變數
     Velocity = Engine::Point(0, 0);     // 初始速度為 0
     onGround = false;                   // 初始時不在地面上（會受重力影響掉落）
-
+    damageToPlayer = 10; // 預設傷害值，請根據您的怪物類型調整
+    attackCooldown = 0.0f; 
     // 巡邏相關變數的預設值（您可以在創建怪物實例時修改這些值）
     patrolMode = PatrolMode::None;
     movingRight = true;
@@ -53,7 +54,9 @@ Monster::Monster(std::string img, float x, float y, float radius, float speed, f
     flipHorizontal = false;
     // 新增用於緩衝抖動的計時器
     turnAroundCooldown = 0.0f;
-    
+    this->damageToPlayer = 10; // <--- 這裡給一個預設值，例如 10
+    this->attackCooldown = 0.0f; // 初始時可以攻擊
+
     // 確保不使用構造函數傳入的 speed 參數影響巡邏
     Engine::LOG(Engine::INFO) << "Monster created with constructor speed: " << speed 
                              << ", but using moveSpeed: " << moveSpeed;
@@ -154,7 +157,9 @@ void Monster::Update(float deltaTime) {
     if (scene) {
         map = scene->GetMapSystem();
     }
-
+    if (attackCooldown > 0) {
+        attackCooldown -= deltaTime;
+    }
     if (!map) {
         Sprite::Update(deltaTime);
         return;
