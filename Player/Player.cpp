@@ -9,12 +9,30 @@
 #include "Engine/GameEngine.hpp"
 #include "Map/MapSystem.hpp"
 #include "Scene/TestScene.hpp"
+#include "UI/Component/Label.hpp"
 
 Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
-    : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y), speed(speed), hp(hp), maxHp(hp),
-      mp(mp), maxMp(mp), exp(0), attack(atk), defense(def), direction(LEFT), currentWeapon(UNARMED), proning(false), onRope(false) {
+    : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y),
+      speed(speed),
+      level(1),
+      exp(0),
+      expToLevelUp(100*level),
+      prevExpToLevelUp(100*level),
+      attack(atk),
+      defense(def),
+      direction(LEFT),
+      currentWeapon(UNARMED),
+      proning(false),
+      onRope(false)
+{
+    maxHp = 100 * level;
+    maxMp = 50 * level;
+    this->hp = std::min(hp, maxHp);
+    this->mp = std::min(mp, maxMp);
+
     LoadAnimation();
 }
+
 
 Player::~Player() {}
 
@@ -125,11 +143,63 @@ void Player::Update(float deltaTime) {
         if (tileId == 1 || tileId == 2) onFloor = true;
     }
 
-   // 1. ALT 跳躍按鍵：如果在地面就跳
-    if (onGround && al_key_down(&keyState, ALLEGRO_KEY_ALT)) {
-        velocity.y = -500;
-        onGround = false;
+    // test hp mp functions with debounce
+    bool keyZ = al_key_down(&keyState, ALLEGRO_KEY_Z);
+    if (keyZ && !prevKeyZ) {
+        TakeDamage(10); // 扣血
     }
+    prevKeyZ = keyZ;
+
+    bool keyC = al_key_down(&keyState, ALLEGRO_KEY_C);
+    if (keyC && !prevKeyC) {
+        UseMP(10); // 扣魔
+    }
+    prevKeyC = keyC;
+
+    bool keyH = al_key_down(&keyState, ALLEGRO_KEY_H);
+    if (keyH && !prevKeyH) {
+        Heal(20); // 補血
+    }
+    prevKeyH = keyH;
+
+    bool keyM = al_key_down(&keyState, ALLEGRO_KEY_M);
+    if (keyM && !prevKeyM) {
+        RecoverMP(10); // 補魔
+    }
+    prevKeyM = keyM;
+
+    bool keyE = al_key_down(&keyState, ALLEGRO_KEY_E);
+    if (keyE && !prevKeyE) {
+        GainExp(50); // 增加 50 EXP
+    }
+    prevKeyE = keyE;
+
+
+
+    // jump&jump down
+   
+    static bool altPrevPressed = false;
+    bool altPressed = al_key_down(&keyState, ALLEGRO_KEY_ALT);
+    bool downHeld   = al_key_down(&keyState, ALLEGRO_KEY_DOWN);
+
+    if (onGround && altPressed && !altPrevPressed) {
+        int tileId = tileData[gridYBelow][gridX];
+        if (downHeld && tileId == 1) {
+            // ↓+ALT → 從 tile==1 下跳
+            Position.y += 70;     // 跳離當前地板
+            velocity.y = 200;     // 下墜起始速度
+            onGround = false;
+            skipLandingThisFrame = true;
+        } else if (!downHeld) {
+            // 單按 ALT → 一般跳躍
+            velocity.y = -500;
+            onGround = false;
+        }
+    }
+    altPrevPressed = altPressed;
+
+
+
 
     // 2. 重力與 Y 移動
     velocity.y += 1000 * deltaTime;
@@ -138,19 +208,15 @@ void Player::Update(float deltaTime) {
     // 3. 地面檢查（下方 tile 是地板）
     if (gridYBelow >= 0 && gridYBelow < tileData.size() && gridX >= 0 && gridX < tileData[0].size()) {
         int tileId = tileData[gridYBelow][gridX];
-        if ((tileId == 1 || tileId == 2) && velocity.y >= 0) {
-            // 落地：碰到地面且速度向下
+        if (skipLandingThisFrame) {
+            skipLandingThisFrame = false;
+        } 
+        else if ((tileId == 1 || tileId == 2) && velocity.y >= 0) {
             velocity.y = 0;
             onGround = true;
-
-            if (tileId == 2) {
-                // basefloor 要站在 tile 中間
-                Position.y = gridYBelow * tileH - Size.y / 2;
-            } else {
-                // 一般 floor，站在 tile 頂端
-                Position.y = gridYBelow * tileH;
-            }
-        } else {
+            Position.y = gridYBelow * tileH - Size.y / 2;
+        }
+        else {
             onGround = false;
         }
     }
@@ -221,7 +287,7 @@ void Player::Update(float deltaTime) {
         }
     } else if (moved) {
         animTimer += deltaTime;
-        if (animTimer >= 0.3f) {
+        if (animTimer >= 0.2f) {
             animFrame = (animFrame + 1) % 4;
             animTimer = 0;
         }
@@ -231,321 +297,144 @@ void Player::Update(float deltaTime) {
     }
 
     Sprite::Update(deltaTime);
+
+    if (shouldClearLevelUpFlag) {
+    shouldClearLevelUpFlag = false;
+    } else {
+        justLeveledUp = false;
+    }
+
 }
+
+void Player::GainExp(int amount) {
+    exp += amount;
+    while (exp >= expToLevelUp) {
+        prevExpToLevelUp = expToLevelUp;
+        exp -= expToLevelUp;
+        LevelUp();
+        justLeveledUp = true;
+        shouldClearLevelUpFlag = true; // 延遲一幀清除
+    }
+}
+
+
+
+void Player::LevelUp() {
+    level++;
+    expToLevelUp = 100 *level;
+
+    maxHp += 20;
+    hp = maxHp;
+    maxMp += 10;
+    mp = maxMp;
+    attack += 5;
+    defense += 2;
+
+    //std::cout << "升級了！現在是 Lv." << level
+    //          << "，HP: " << hp << "，MP: " << mp
+    //          << "，ATK: " << attack << "，DEF: " << defense << "\n";
+}
+
 
 void Player::Draw() const {
     ALLEGRO_BITMAP* bmp = nullptr;
     const std::vector<ALLEGRO_BITMAP*>* currentFrames = nullptr;
-    bool isFlipped = false;
 
     if (attacking && !attackAnimations[currentWeapon].empty()) {
         bmp = attackAnimations[currentWeapon][animFrame % attackAnimations[currentWeapon].size()];
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - al_get_bitmap_height(bmp) / 2,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-        return;
-    }
-
-    if (!onGround && !jumpAnimations[currentWeapon].empty()) {
+    } else if (!onGround && !jumpAnimations[currentWeapon].empty()) {
         bmp = jumpAnimations[currentWeapon][animFrame % jumpAnimations[currentWeapon].size()];
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - al_get_bitmap_height(bmp) / 2,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-        return;
-    }
-
-    if (proning && !proneAnimations[currentWeapon].empty()) {
+    } else if (proning && !proneAnimations[currentWeapon].empty()) {
         bmp = proneAnimations[currentWeapon][0];
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - 5,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-        return;
-    }
-    //Position.y - al_get_bitmap_height(bmp) / 2,
-    if (animFrame == 0 && animTimer == 0) {
-        bmp = standAnimations[currentWeapon].empty() ? nullptr : standAnimations[currentWeapon][0];
     } else {
-        currentFrames = &walkAnimations[currentWeapon];
-        if (currentFrames && !currentFrames->empty()) {
-            bmp = (*currentFrames)[animFrame % currentFrames->size()];
+        if (animFrame == 0 && animTimer == 0) {
+            bmp = standAnimations[currentWeapon].empty() ? nullptr : standAnimations[currentWeapon][0];
+        } else {
+            currentFrames = &walkAnimations[currentWeapon];
+            if (currentFrames && !currentFrames->empty()) {
+                bmp = (*currentFrames)[animFrame % currentFrames->size()];
+            }
         }
     }
 
     if (bmp) {
         al_draw_bitmap(bmp,
             Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - al_get_bitmap_height(bmp) / 2,
+            proning ? Position.y - 5 : Position.y - al_get_bitmap_height(bmp) / 2,
             direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
     }
+
+    // ====== 畫上方血條、魔力條、經驗條 ======
+    float bmpW = static_cast<float>(al_get_bitmap_width(bmp));
+    float bmpH = static_cast<float>(al_get_bitmap_height(bmp));
+    float barW = 80.0f, barH = 6.0f, spacing = 4.0f;
+    float barX = Position.x - barW / 2;
+    float totalBarHeight = 3 * barH + 2 * spacing;
+    float barYTop = Position.y - bmpH / 2 - 10 - totalBarHeight;
+    float hpY = barYTop;
+    float mpY = hpY + barH + spacing;
+    float expY = mpY + barH + spacing;
+
+    al_draw_filled_rectangle(barX, hpY,  barX + barW, hpY + barH,  al_map_rgb(100, 100, 100));
+    al_draw_filled_rectangle(barX, mpY,  barX + barW, mpY + barH,  al_map_rgb(100, 100, 100));
+    al_draw_filled_rectangle(barX, expY, barX + barW, expY + barH, al_map_rgb(100, 100, 100));
+
+    float hpRatio  = static_cast<float>(hp) / maxHp;
+    float mpRatio  = static_cast<float>(mp) / maxMp;
+    float expRatio;
+    if (justLeveledUp) {
+        // 升級當幀：畫滿格（即使 exp = 0）
+        expRatio = 1.0f;
+    } else {
+        expRatio = static_cast<float>(exp) / expToLevelUp;
+        expRatio = std::min(expRatio, 1.0f);
+    }
+
+
+
+    al_draw_filled_rectangle(barX, hpY,  barX + barW * hpRatio,  hpY + barH,  al_map_rgb(255, 0, 0));
+    al_draw_filled_rectangle(barX, mpY,  barX + barW * mpRatio,  mpY + barH,  al_map_rgb(0, 0, 255));
+    al_draw_filled_rectangle(barX, expY, barX + barW * expRatio, expY + barH, al_map_rgb(255, 255, 0));
+
+    // ====== 顯示 LV. 等級文字（角色下方） ======
+    std::string levelText = "LV. " + std::to_string(level);
+    Engine::Label label(levelText, "pirulen.ttf", 12,
+        Position.x, Position.y + bmpH / 2 + 5, 255, 255, 255, 255);
+    label.Anchor = Engine::Point(0.5, 0);
+    label.Draw();
 }
 
-/*#include "Player.hpp"
-#include <allegro5/allegro_primitives.h>
-#include <allegro5/allegro_image.h>
-#include <allegro5/color.h>
-#include <allegro5/allegro.h>
-#include <algorithm>
-#include "Engine/Resources.hpp"
-#include "Scene/PlayScene.hpp"
-#include "Engine/GameEngine.hpp"
 
-Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
-    : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y), speed(speed), hp(hp), maxHp(hp),
-      mp(mp), maxMp(mp), exp(0), attack(atk), defense(def), direction(LEFT), currentWeapon(UNARMED), proning(false), onRope(false) {
-    LoadAnimation();
+
+int Player::GetLevel() const {
+    return level;
 }
 
-Player::~Player() {}
-
-void Player::LoadAnimation() {
-    // Stand Animations
-    standAnimations[UNARMED] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/stand1_1.png").get(),
-    };
-    standAnimations[SWORD] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/stand1_1.png").get(),
-    };
-    standAnimations[HANDCANNON] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/stand1_1.png").get(),
-    };
-
-    // Walk Animations
-    walkAnimations[UNARMED] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/walk1_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/walk1_2.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/walk1_3.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/walk1_2.png").get(),
-    };
-    walkAnimations[SWORD] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/walk1_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/walk1_2.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/walk1_3.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/walk1_2.png").get(),
-    };
-    walkAnimations[HANDCANNON] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/walk1_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/walk1_2.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/walk1_3.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/walk1_2.png").get(),
-    };
-    //Jump Animations
-    jumpAnimations[UNARMED] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/jump_0.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/jump_1.png").get(),
-    };
-
-    jumpAnimations[SWORD] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/jump_0.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/jump_1.png").get(),
-    };
-
-    jumpAnimations[HANDCANNON] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/jump_0.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/jump_1.png").get(),
-    };
-
-    proneAnimations[UNARMED] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/prone_0.png").get(),
-    };
-
-    proneAnimations[SWORD] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/prone_0.png").get(),
-    };
-
-    proneAnimations[HANDCANNON] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/prone_0.png").get(),
-    };
-    // Attack Animations
-    attackAnimations[UNARMED] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/stabO2_0.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/stabO2_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/stabO2_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_no_weapon/stabO2_1.png").get()
-    };
-    attackAnimations[SWORD] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/stabO1_0.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/stabO1_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/stabO1_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/stabO1_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_sword/stabO1_1.png").get()
-        //Engine::Resources::GetInstance().GetBitmap("Player_sword/stabO1_2.png").get()
-    };
-    attackAnimations[HANDCANNON] = {
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/shootF_0.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/shootF_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/shootF_1.png").get(),
-        Engine::Resources::GetInstance().GetBitmap("Player_handcannon/shootF_1.png").get()
-    };
+int Player::GetExp() const {
+    return exp;
 }
 
-void Player::Update(float deltaTime) {
-    ALLEGRO_KEYBOARD_STATE keyState;
-    al_get_keyboard_state(&keyState);
-
-    float moveDist = speed * deltaTime / 2;
-    bool moved = false;
-
-    auto* scene = dynamic_cast<PlayScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
-    int gridX = floor(Position.x / PlayScene::BlockSize);
-    int gridY = floor((Position.y + Size.y / 2 + 1) / PlayScene::BlockSize);
-
-    bool touchingFloor = false;
-    if (scene && gridX >= 0 && gridX < PlayScene::MapWidth && gridY >= 0 && gridY < PlayScene::MapHeight) {
-        if (!scene->mapState[gridY][gridX]) {
-            touchingFloor = true;
-        }
-    }
-
-    if (onGround && al_key_down(&keyState, ALLEGRO_KEY_ALT)) {
-        velocity.y = -400;
-        onGround = false;
-    }
-
-    //prone
-    proning = al_key_down(&keyState, ALLEGRO_KEY_DOWN) && !onRope;
-    
-    if (!onGround) {
-        velocity.y += 1000 * deltaTime;
-        Position.y += velocity.y * deltaTime;
-    }
-
-    if (touchingFloor && velocity.y >= 0) {
-        onGround = true;
-        velocity.y = 0;
-        Position.y = gridY * PlayScene::BlockSize - Size.y / 2;
-    } else {
-        onGround = false;
-    }
-
-    // 武器切換邏輯（按 SPACE）
-    static bool spacePressed = false;
-    if (al_key_down(&keyState, ALLEGRO_KEY_SPACE)) {
-        if (!spacePressed) {
-            // 切換武器：循環 UNARMED -> SWORD -> HANDCANNON -> UNARMED
-            currentWeapon = static_cast<WeaponType>((currentWeapon + 1) % 3);
-            animFrame = 0; // 切換時重置動畫
-            animTimer = 0;
-            spacePressed = true;
-        }
-    } else {
-        spacePressed = false; // 放開鍵後才能再次觸發
-    }
-
-
-    int screenW = Engine::GameEngine::GetInstance().GetScreenSize().x;
-    int screenH = Engine::GameEngine::GetInstance().GetScreenSize().y;
-    Position.x = std::max(Size.x / 2.0f, std::min(Position.x, screenW - Size.x / 2.0f));
-    Position.y = std::min(Position.y, screenH - Size.y / 2.0f);
-
-    if (!al_key_down(&keyState, ALLEGRO_KEY_LCTRL)) {
-        attackKeyPressed = false;
-    }
-    if (al_key_down(&keyState, ALLEGRO_KEY_LCTRL) && !attackKeyPressed && !attacking) {
-        attacking = true;
-        attackKeyPressed = true;
-        attackDashed = false;
-        attackTimer = 0;
-        animFrame = 0;
-    }
-
-    if (!attacking) {
-        if (al_key_down(&keyState, ALLEGRO_KEY_UP)) {
-            Position.y -= moveDist;
-            direction = UP;
-            moved = true;
-        } else if (al_key_down(&keyState, ALLEGRO_KEY_DOWN)) {
-            Position.y += moveDist;
-            direction = DOWN;
-            moved = true;
-        } else if (al_key_down(&keyState, ALLEGRO_KEY_LEFT)) {
-            Position.x -= moveDist;
-            direction = LEFT;
-            moved = true;
-        } else if (al_key_down(&keyState, ALLEGRO_KEY_RIGHT)) {
-            Position.x += moveDist;
-            direction = RIGHT;
-            moved = true;
-        }
-    }
-
-    if (attacking) {
-        attackTimer += deltaTime;
-        int totalFrames = attackAnimations[currentWeapon].size();
-        int currentFrame = int(attackTimer / attackDuration * totalFrames);
-        animFrame = std::min(currentFrame, totalFrames - 1);
-
-        if ((animFrame == 0 || animFrame == 1) && !attackDashed) {
-            float dashAmount = 300 * deltaTime;
-            Position.x += (direction == RIGHT ? dashAmount : -dashAmount);
-            attackDashed = true;
-        }
-
-        if (attackTimer >= attackDuration) {
-            attacking = false;
-            animFrame = 0;
-        }
-    } else if (moved) {
-        animTimer += deltaTime;
-        if (animTimer >= 0.3f) {
-            animFrame = (animFrame + 1) % 4;
-            animTimer = 0;
-        }
-    } else {
-        animFrame = 0;
-        animTimer = 0;
-    }
-
-    Sprite::Update(deltaTime);
+int Player::GetExpToLevelUp() const {
+    return expToLevelUp;
 }
 
-void Player::Draw() const {
-    ALLEGRO_BITMAP* bmp = nullptr;
-    const std::vector<ALLEGRO_BITMAP*>* currentFrames = nullptr;
-    bool isFlipped = false;
+void Player::TakeDamage(int dmg) {
+    hp -= std::max(dmg - defense, 0);
+    hp = std::max(hp, 0); // >=0
+}
 
-    if (attacking && !attackAnimations[currentWeapon].empty()) {
-        bmp = attackAnimations[currentWeapon][animFrame % attackAnimations[currentWeapon].size()];
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - al_get_bitmap_height(bmp) / 2,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-        return;
+bool Player::UseMP(int MPcost) {
+    if (mp >= MPcost) {
+        mp -= MPcost;
+        return true;
     }
+    return false;
+}
 
-    if (!onGround && !jumpAnimations[currentWeapon].empty()) {
-        bmp = jumpAnimations[currentWeapon][animFrame % jumpAnimations[currentWeapon].size()];
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - al_get_bitmap_height(bmp) / 2,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-        return;
-    }
+void Player::Heal(int amount) {
+    hp = std::min(hp + amount, maxHp);
+}
 
-    if (proning && !proneAnimations[currentWeapon].empty()) {
-        bmp = proneAnimations[currentWeapon][0];
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - 5,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-        return;
-    }
-    //Position.y - al_get_bitmap_height(bmp) / 2,
-    if (animFrame == 0 && animTimer == 0) {
-        bmp = standAnimations[currentWeapon].empty() ? nullptr : standAnimations[currentWeapon][0];
-    } else {
-        currentFrames = &walkAnimations[currentWeapon];
-        if (currentFrames && !currentFrames->empty()) {
-            bmp = (*currentFrames)[animFrame % currentFrames->size()];
-        }
-    }
-
-    if (bmp) {
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            Position.y - al_get_bitmap_height(bmp) / 2,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
-    }
-}*/
+void Player::RecoverMP(int amount) {
+    mp = std::min(mp + amount, maxMp);
+}

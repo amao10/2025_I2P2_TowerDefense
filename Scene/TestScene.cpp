@@ -54,7 +54,7 @@ void TestScene::Initialize() {
         Engine::LOG(Engine::ERROR) << "Map loading failed: " << e.what();
     }
 
-    player = new Player(400, 200, 300, 100, 50, 30, 10); // 可調位置和屬性
+    player = new Player(400, 200, 300, 100, 50, 30, 0); // 可調位置和屬性
     AddNewObject(player); // 讓 engine 控制 update & draw
 
     CreateTeleportTriggers();
