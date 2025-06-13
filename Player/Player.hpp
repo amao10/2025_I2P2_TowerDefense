@@ -55,11 +55,17 @@ protected:
     //test key debounce
     bool prevKeyZ = false;
     bool prevKeyC = false;
+    bool prevKeyA = false;
+    bool prevKeyS = false;
     bool prevKeyH = false;
     bool prevKeyM = false;
     bool prevKeyE = false;
 
-    
+    //invincible
+    bool invincible = false;
+    float invincibleTimer = 0.0f;
+    const float invincibleDuration = 1.0f; // 一秒無敵
+
     void LoadAnimation();
 
 public:
@@ -78,6 +84,12 @@ public:
     int GetExp() const;
     int GetExpToLevelUp() const;
 
+    //pickups
+    int coin = 0;          // coin amount
+    int redPotion = 0;     // redPotion amount
+    int bluePotion = 0;    // bluePotion amount
+
+    
     void TakeDamage(int dmg); //-HP
     bool UseMP(int MPcost); //-MP
     void Heal(int amount); //+HP

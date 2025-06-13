@@ -130,7 +130,7 @@ void Player::Update(float deltaTime) {
 
     MapSystem* map = scene->GetMapSystem();
     if (!map) return;
-
+    
     const int tileW = 90;
     const int tileH = 60;
     int gridX = static_cast<int>((Position.x) / tileW);
@@ -142,6 +142,15 @@ void Player::Update(float deltaTime) {
     if (gridYBelow >= 0 && gridYBelow < tileData.size() && gridX >= 0 && gridX < tileData[0].size()) {
         int tileId = tileData[gridYBelow][gridX];
         if (tileId == 1 || tileId == 2) onFloor = true;
+    }
+
+    // invincible timer
+    if (invincible) {
+        invincibleTimer -= deltaTime;
+        if (invincibleTimer <= 0) {
+            invincible = false;
+            invincibleTimer = 0;
+        }
     }
 
     // test hp mp functions with debounce
@@ -157,17 +166,17 @@ void Player::Update(float deltaTime) {
     }
     prevKeyC = keyC;
 
-    bool keyH = al_key_down(&keyState, ALLEGRO_KEY_H);
-    if (keyH && !prevKeyH) {
+    bool keyA = al_key_down(&keyState, ALLEGRO_KEY_A);
+    if (keyA && !prevKeyA) {
         Heal(20); // 補血
     }
-    prevKeyH = keyH;
+    prevKeyA = keyA;
 
-    bool keyM = al_key_down(&keyState, ALLEGRO_KEY_M);
-    if (keyM && !prevKeyM) {
+    bool keyS = al_key_down(&keyState, ALLEGRO_KEY_S);
+    if (keyS && !prevKeyS) {
         RecoverMP(10); // 補魔
     }
-    prevKeyM = keyM;
+    prevKeyS = keyS;
 
     bool keyE = al_key_down(&keyState, ALLEGRO_KEY_E);
     if (keyE && !prevKeyE) {
@@ -175,6 +184,30 @@ void Player::Update(float deltaTime) {
     }
     prevKeyE = keyE;
 
+    //+Hp, MP
+    bool keyH = al_key_down(&keyState, ALLEGRO_KEY_H);
+    if (keyH && !prevKeyH) {
+        if (redPotion > 0) {
+            redPotion--;
+            Heal(50);
+        } else if (coin >= 5) {
+            coin -= 5;
+            Heal(50);
+        }
+    }
+    prevKeyH = keyH;
+
+    bool keyM = al_key_down(&keyState, ALLEGRO_KEY_M);
+    if (keyM && !prevKeyM) {
+        if (bluePotion > 0) {
+            bluePotion--;
+            RecoverMP(25);
+        } else if (coin >= 5) {
+            coin -= 5;
+            RecoverMP(25);
+        }
+    }
+    prevKeyM = keyM;
 
 
     // jump&jump down
@@ -206,6 +239,12 @@ void Player::Update(float deltaTime) {
     velocity.y += 1000 * deltaTime;
     Position.y += velocity.y * deltaTime;
 
+    // 避免跳太高出畫面（上邊界）
+    if (Position.y - Size.y / 2 < 0) {
+        Position.y = Size.y / 2;
+        velocity.y = 0;
+    }
+
     // 3. 地面檢查（下方 tile 是地板）
     if (gridYBelow >= 0 && gridYBelow < tileData.size() && gridX >= 0 && gridX < tileData[0].size()) {
         int tileId = tileData[gridYBelow][gridX];
@@ -230,7 +269,7 @@ void Player::Update(float deltaTime) {
     if (!attacking) {
         if (al_key_down(&keyState, ALLEGRO_KEY_LEFT)) {
             int nx = static_cast<int>((Position.x - moveDist - Size.x / 2) / tileW);
-            if (nx >= 0 && (tileData[gridY][nx] == 0 || tileData[gridY][nx] == 1 || tileData[gridY][nx] == 2)) {
+            if (nx >= 0 && (tileData[gridY][nx] == 0 || tileData[gridY][nx] == 1 || tileData[gridY][nx] == 2)&& (Position.x - moveDist - Size.x / 2 >= 0)) {
                 Position.x -= moveDist;
                 direction = LEFT;
                 moved = true;
@@ -269,12 +308,56 @@ void Player::Update(float deltaTime) {
         attackTimer = 0;
         animFrame = 0;
     }
-
+    static bool attackHitDone = false; // 記錄這次攻擊是否已經打中
     if (attacking) {
         attackTimer += deltaTime;
         int totalFrames = attackAnimations[currentWeapon].size();
         int currentFrame = int(attackTimer / attackDuration * totalFrames);
         animFrame = std::min(currentFrame, totalFrames - 1);
+        
+        //attack logic
+        if (!attackHitDone && (currentWeapon == UNARMED || currentWeapon == SWORD)) {
+            auto* scene = dynamic_cast<TestScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
+            if (scene) {
+                for (auto& obj : scene->MonsterGroup->GetObjects()) {
+                    Monster* monster = dynamic_cast<Monster*>(obj);
+                    if (!monster) continue;
+
+                    // 偵測攻擊命中區域：面向右時使用右半邊，面向左用左半邊
+                    float attackRange = 30.0f;
+                    float attackLeft, attackRight;
+                    if (direction == RIGHT) {
+                        attackLeft = Position.x;
+                        attackRight = Position.x + attackRange;
+                    } else {
+                        attackLeft = Position.x - attackRange;
+                        attackRight = Position.x;
+                    }
+                    float attackTop = Position.y - Size.y / 2;
+                    float attackBottom = Position.y + Size.y / 2;
+
+                    float monsterLeft = monster->Position.x - monster->Size.x / 2;
+                    float monsterRight = monster->Position.x + monster->Size.x / 2;
+                    float monsterTop = monster->Position.y - monster->Size.y / 2;
+                    float monsterBottom = monster->Position.y + monster->Size.y / 2;
+
+                    bool hit = !(attackRight < monsterLeft || attackLeft > monsterRight ||
+                                 attackBottom < monsterTop || attackTop > monsterBottom);
+
+                    if (hit) {
+                        int damage = attack;
+                        if (currentWeapon == UNARMED)
+                            damage = attack; // 拳頭攻擊力較弱
+                        else if (currentWeapon == SWORD)
+                            damage = attack + 10; // 劍維持正常攻擊力
+                        monster->Hit(damage);
+
+                        attackHitDone = true; // 避免多次打中
+                        break;
+                    }
+                }
+            }
+        }
 
         if ((animFrame == 0 || animFrame == 1) && !attackDashed) {
             float dashAmount = 300 * deltaTime;
@@ -297,31 +380,6 @@ void Player::Update(float deltaTime) {
         animTimer = 0;
     }
 
-    //撞到 monster
-    for (auto& obj : scene->MonsterGroup->GetObjects()) {
-        Monster* monster = dynamic_cast<Monster*>(obj);
-        if (!monster) continue;
-
-        float playerLeft = Position.x - Size.x / 2;
-        float playerRight = Position.x + Size.x / 2;
-        float playerTop = Position.y - Size.y / 2;
-        float playerBottom = Position.y + Size.y / 2;
-
-        float monsterLeft = monster->Position.x - monster->Size.x / 2;
-        float monsterRight = monster->Position.x + monster->Size.x / 2;
-        float monsterTop = monster->Position.y - monster->Size.y / 2;
-        float monsterBottom = monster->Position.y + monster->Size.y / 2;
-
-        bool intersect = !(playerRight < monsterLeft || playerLeft > monsterRight ||
-                           playerBottom < monsterTop || playerTop > monsterBottom);
-
-        if (intersect) {
-            //TakeDamage(5);
-            if (Position.x < monster->Position.x) Position.x -= 50;
-            else Position.x += 50;
-            break; // 每幀只處理一個碰撞即可
-        }
-    }
     Sprite::Update(deltaTime);
 
     if (shouldClearLevelUpFlag) {
@@ -356,9 +414,6 @@ void Player::LevelUp() {
     attack += 5;
     defense += 2;
 
-    //std::cout << "升級了！現在是 Lv." << level
-    //          << "，HP: " << hp << "，MP: " << mp
-    //          << "，ATK: " << attack << "，DEF: " << defense << "\n";
 }
 
 
@@ -445,9 +500,16 @@ int Player::GetExpToLevelUp() const {
 }
 
 void Player::TakeDamage(int dmg) {
+    if (invincible) return;
+
     hp -= std::max(dmg - defense, 0);
-    hp = std::max(hp, 0); // >=0
+    hp = std::max(hp, 0);
+
+    invincible = true;
+    invincibleTimer = invincibleDuration;
+
 }
+
 
 bool Player::UseMP(int MPcost) {
     if (mp >= MPcost) {
