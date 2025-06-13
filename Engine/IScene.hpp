@@ -15,6 +15,7 @@ namespace Engine {
         /// The interface cannot be instantiated directly, must be inherited.
         /// </summary>
         explicit IScene() = default;
+        
 
     public:
         /// <summary>
@@ -43,6 +44,7 @@ namespace Engine {
         /// Delegate the draw event to all visible objects.
         /// </summary>
         void Draw() const override;
+        //virtual Group* GetGroup(const std::string& name) const;
     };
 }
 #endif   // ISCENE_HPP

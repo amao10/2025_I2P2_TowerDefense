@@ -23,7 +23,7 @@ class MapSystem {
 public:
     MapSystem(ALLEGRO_DISPLAY* display);
     ~MapSystem();
-
+    const std::vector<std::vector<int>>& GetMapDistance() const { return mapDistance; }
     bool loadMap(const std::string& mapFile,
                  const std::string& objectFile);
     void unloadMap();
@@ -33,16 +33,18 @@ public:
                       int &outX, int &outY);
     //revise
     const std::vector<std::vector<int>>& GetTileData() const { return tileData; }
+    int screenWidth, screenHeight;
+    int mapWidth, mapHeight;
+    int tileWidth, tileHeight;
 
 private:
+    std::vector<std::vector<int>> mapDistance;
     void parseTileData(const std::string& filename);
     void parseObjectData(const std::string& filename);
     std::string pathForTileId(int id);
 
     ALLEGRO_DISPLAY* display_;
-    int screenWidth, screenHeight;
-    int mapWidth, mapHeight;
-    int tileWidth, tileHeight;
+    
     float cameraX, cameraY;
 
     std::vector<std::vector<int>> tileData;

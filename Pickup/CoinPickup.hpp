@@ -4,6 +4,7 @@
 #include <string>
 #include "Engine/Sprite.hpp"
 #include "Scene/PlayScene.hpp"
+#include "Scene/TestScene.hpp"
 
 class CoinPickup : public Engine::Sprite {
 public:
@@ -13,6 +14,7 @@ public:
 
 protected:
     PlayScene* getPlayScene();
+    TestScene* getTestScene();
     int frameCount;
     int frameInterval;
     std::vector<std::string> coinImgs;

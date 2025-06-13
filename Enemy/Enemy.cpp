@@ -24,6 +24,11 @@
 PlayScene *Enemy::getPlayScene() {
     return dynamic_cast<PlayScene *>(Engine::GameEngine::GetInstance().GetActiveScene());
 }
+
+// TestScene *Enemy::getTestScene(){
+//     return dynamic_cast<TestScene *>(Engine::GameEngine::GetInstance().GetActiveScene());
+// }
+
 void Enemy::OnExplode() {
     getPlayScene()->EffectGroup->AddNewObject(new ExplosionEffect(Position.x, Position.y));
     std::random_device dev;

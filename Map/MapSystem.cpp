@@ -1,6 +1,6 @@
 // MapSystem.cpp
 #include "MapSystem.hpp"
-
+#include <queue>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <fstream>
@@ -107,7 +107,6 @@ bool MapSystem::loadMap(const std::string& mapFile,
             tileGroup_->AddNewObject(new MapTile(bmp, px, py, tileWidth, tileHeight));
         }
     }
-
     return true;
 }
 
@@ -135,7 +134,7 @@ void MapSystem::parseTileData(const std::string& filename) {
 void MapSystem::parseObjectData(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "打不開物件檔: " << filename << "\n";
+        std::cerr << "cannot open: " << filename << "\n";
         return;
     }
     std::string line;
@@ -163,7 +162,7 @@ std::string MapSystem::pathForTileId(int id) {
         case 2: return "Resource/images/tiles/basefloor.png";
         // 更多 case…
         default:
-            throw std::invalid_argument("未知的 tile id: " + std::to_string(id));
+            throw std::invalid_argument("unknown tile id: " + std::to_string(id));
     }
 }
 
