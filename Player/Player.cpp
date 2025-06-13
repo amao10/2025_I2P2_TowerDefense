@@ -10,7 +10,7 @@
 #include "Map/MapSystem.hpp"
 #include "UI/Component/Label.hpp"
 #include "Monster/Monster.hpp"
-
+#include "Engine/AudioHelper.hpp"
 
 Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
     : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y),
@@ -310,6 +310,28 @@ void Player::Update(float deltaTime) {
         attackDashed = false;
         attackTimer = 0;
         animFrame = 0;
+
+        const char* soundName = nullptr;
+        switch (currentWeapon) {
+            case UNARMED:
+                soundName = "no_weapon_attack.ogg";
+                break;
+            case SWORD:
+                soundName = "sword_attack.ogg";
+                break;
+            case HANDCANNON:
+                //soundName = "handcannon_attack.ogg";
+                break;
+
+            default:
+                soundName = "no_weapon_attack.ogg";
+                break;
+        }
+
+        if (soundName) {
+            AudioHelper::PlayAudio(soundName);
+        }
+        
     }
 
     if (attacking) {
@@ -350,9 +372,14 @@ void Player::Update(float deltaTime) {
                         if (hit) {
                             int damage = attack;
                             if (currentWeapon == UNARMED)
+                            {
                                 damage = attack;
+                            }
+                                
                             else if (currentWeapon == SWORD)
+                            {
                                 damage = attack + 10;
+                            }
                             monster->Hit(damage);
                         }
                 }
@@ -405,6 +432,7 @@ void Player::GainExp(int amount) {
 
 void Player::LevelUp() {
     level++;
+    AudioHelper::PlaySample("level_up.ogg");
     expToLevelUp = 100 *level;
 
     maxHp += 20;

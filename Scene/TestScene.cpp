@@ -34,6 +34,10 @@ TestScene::~TestScene() {
 }
 
 void TestScene::Initialize() {
+
+    //playBGM
+    AudioHelper::PlayBGM("fairytale.ogg");
+
     // 1. 取得顯示器
     ALLEGRO_DISPLAY* display = al_get_current_display();
     if (!display) {
