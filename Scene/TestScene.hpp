@@ -13,6 +13,7 @@
 #include "Player/Player.hpp"
 #include "Monster/Monster.hpp"
 #include "Engine/Group.hpp"
+#include "Engine/Collider.hpp"
 
 
 enum class MonsterType {
