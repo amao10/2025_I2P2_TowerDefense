@@ -63,6 +63,15 @@ void TestScene::Initialize() {
 
     CreateTeleportTriggers();
 
+    coinBmp = Engine::Resources::GetInstance()
+             .GetBitmap("ui/coin.png").get();
+    redBmp  = Engine::Resources::GetInstance()
+                .GetBitmap("ui/red_potion.png").get();
+    blueBmp = Engine::Resources::GetInstance()
+                .GetBitmap("ui/blue_potion.png").get();
+    uiFont  = Engine::Resources::GetInstance()
+                .GetFont("pirulen.ttf", 16).get();
+
     // 4. 初始化计时器
     elapsedTime_ = 0.0f;
 
@@ -142,30 +151,7 @@ void TestScene::Update(float deltaTime) {
         }
     }
 
-    // 偵測任何傳送點
-    // for (auto& tp : mapSystem_->GetTeleports()) {
-    //     if (tp.x == gx && tp.y == gy) {
-    //         // 1. 清除舊觸發器
-    //         ClearTeleportTriggers();
-    //         for (Monster* m : monsters) {
-    //             if (m) delete m; // 確保刪除怪物物件
-    //         }
-    //         monsters.clear();
-    //         MonsterGroup->Clear();// 清空 Group，但不會 delete 記憶體
-    //         respawnTimers.clear();
-    //         // 2. 換圖
-    //         mapSystem_->unloadMap();
-    //         mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile,tp.targetMonsterSpawnFile);
-    //         // 3. 重設玩家位置
-    //         player->Position.x = static_cast<float>(tp.targetX);
-    //         player->Position.y = static_cast<float>(tp.targetY);
-    //         // 5. 為新地圖生成怪物 (重要！)
-    //         LoadMonstersForCurrentMap();
-    //         // 4. 重建觸發器（新的地圖裡可能有新的 teleports）
-    //         CreateTeleportTriggers();
-    //         break;  // 一次只能觸發一個
-    //     }
-    // }
+    
     // 怪物復活邏輯 - 需要修改為基於 mapSystem_->GetMonsterSpawns() 來獲取原始生成點
     // 您不再需要全局的 spawnPoints 和 spawnTypes
     for (size_t i = 0; i < monsters.size(); ++i) {
@@ -246,6 +232,40 @@ void TestScene::Draw() const {
 
     al_identity_transform(&t);
     al_use_transform(&t);
+
+    // 固定屏幕座標
+    const int uiX = 20, uiY = 20, spacing = 40;
+
+    // 1. 金幣
+    al_draw_bitmap(coinBmp, uiX, uiY, 0);
+    Engine::Label coinLabel(
+        std::to_string(player->coin),   // 顯示數量
+        "pirulen.ttf", 16,              // 字體、大小
+        uiX + 32, uiY + 8,              // 文字位置
+        255, 255, 0, 255                // 顏色 (黃色)
+    );
+    coinLabel.Draw();  // Label::Draw() 會用 al_draw_text :contentReference[oaicite:1]{index=1}
+
+    // 2. 紅藥水
+    al_draw_bitmap(redBmp, uiX, uiY + spacing, 0);
+    Engine::Label redLabel(
+        std::to_string(player->redPotion),
+        "pirulen.ttf", 16,
+        uiX + 32, uiY + spacing + 8,
+        255,  0,   0, 255               // 紅色
+    );
+    redLabel.Draw();
+
+    // 3. 藍藥水
+    al_draw_bitmap(blueBmp, uiX, uiY + spacing * 2, 0);
+    Engine::Label blueLabel(
+        std::to_string(player->bluePotion),
+        "pirulen.ttf", 16,
+        uiX + 32, uiY + spacing * 2 + 8,
+         0,   0, 255, 255               // 藍色
+    );
+    blueLabel.Draw();
+
 }
 
 // 怪物工廠方法
