@@ -24,7 +24,10 @@ Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
       direction(LEFT),
       currentWeapon(UNARMED),
       proning(false),
-      onRope(false)
+      onRope(false),
+      coin(0),
+      redPotion(0),
+      bluePotion(0)
 {
     maxHp = 100 * level;
     maxMp = 50 * level;
@@ -308,7 +311,7 @@ void Player::Update(float deltaTime) {
         attackTimer = 0;
         animFrame = 0;
     }
-    static bool attackHitDone = false; // 記錄這次攻擊是否已經打中
+
     if (attacking) {
         attackTimer += deltaTime;
         int totalFrames = attackAnimations[currentWeapon].size();
@@ -316,7 +319,7 @@ void Player::Update(float deltaTime) {
         animFrame = std::min(currentFrame, totalFrames - 1);
         
         //attack logic
-        if (!attackHitDone && (currentWeapon == UNARMED || currentWeapon == SWORD)) {
+        if ((currentWeapon == UNARMED || currentWeapon == SWORD)) {
             auto* scene = dynamic_cast<TestScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
             if (scene) {
                 for (auto& obj : scene->MonsterGroup->GetObjects()) {
@@ -344,17 +347,6 @@ void Player::Update(float deltaTime) {
                     bool hit = !(attackRight < monsterLeft || attackLeft > monsterRight ||
                                  attackBottom < monsterTop || attackTop > monsterBottom);
 
-                    // if (hit) {
-                    //     int damage = attack;
-                    //     if (currentWeapon == UNARMED)
-                    //         damage = attack; // 拳頭攻擊力較弱
-                    //     else if (currentWeapon == SWORD)
-                    //         damage = attack + 10; // 劍維持正常攻擊力
-                    //     monster->Hit(damage);
-
-                    //     attackHitDone = true; // 避免多次打中
-                    //     break;
-                    // }
                         if (hit) {
                             int damage = attack;
                             if (currentWeapon == UNARMED)
