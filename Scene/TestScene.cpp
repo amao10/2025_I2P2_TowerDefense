@@ -35,6 +35,7 @@ TestScene::~TestScene() {
 
 void TestScene::Initialize() {
 
+    al_init_primitives_addon();
 
     // 1. 取得顯示器
     ALLEGRO_DISPLAY* display = al_get_current_display();
@@ -60,6 +61,9 @@ void TestScene::Initialize() {
     AddNewObject(player); // 讓 engine 控制 update & draw
 
     CreateTeleportTriggers();
+
+    bgBmp = Engine::Resources::GetInstance()
+          .GetBitmap("background.png").get();
 
     coinBmp = Engine::Resources::GetInstance()
              .GetBitmap("ui/coin.png").get();
@@ -87,16 +91,17 @@ void TestScene::Initialize() {
 }
 
 void TestScene::Terminate() {
+    IScene::Terminate();
+
     if (mapSystem_) {
         delete mapSystem_;
         mapSystem_ = nullptr;
     }
-    if (player) {
-        delete player;
-        player = nullptr;
-    }
-
-    IScene::Terminate();
+    // if (player) {
+    //     delete player;
+    //     player = nullptr;
+    // }
+    player = nullptr;
 }
 
 void TestScene::Update(float deltaTime) {
@@ -183,6 +188,37 @@ void TestScene::Update(float deltaTime) {
             }
         }
     }
+    // ---- 在所有物件都跑完 Update() 之後 ----
+    TeleportPoint pendingCfg;
+    bool needReload = false;
+    for (auto* tp : teleportTriggers_) {
+        if (tp->triggered_) {
+            pendingCfg = tp->cfg_;  // 儲存要切換的設定
+            needReload = true;
+            break;
+        }
+    }
+    if (needReload) {
+        // 1. 卸載／載入地圖
+        mapSystem_->unloadMap();
+        mapSystem_->loadMap(
+            pendingCfg.targetMapFile,
+            pendingCfg.targetObjFile,
+            pendingCfg.targetMonsterSpawnFile
+        );
+        // 2. 更新玩家位置
+        player->Position.x = float(pendingCfg.targetX);
+        player->Position.y = float(pendingCfg.targetY);
+        // 3. 清除、重建傳送點（此時已不在迴圈內，不會 invalidated）
+        ClearTeleportTriggers();
+        CreateTeleportTriggers();
+    }
+
+    if (player->GetHP() <= 0) {
+        Engine::GameEngine::GetInstance().ChangeScene("end");
+
+    }
+
 }
 
 void TestScene::LoadMonstersForCurrentMap() {
@@ -218,54 +254,131 @@ void TestScene::LoadMonstersForCurrentMap() {
     }
 }
 void TestScene::Draw() const {
-    al_clear_to_color(al_map_rgb(0, 0, 0));
-    // 2. 先把地圖畫出來
+    // 0. 先切回「螢幕座標系」畫背景
+    ALLEGRO_TRANSFORM uiTrans;
+    al_identity_transform(&uiTrans);
+    al_use_transform(&uiTrans);
+    // (如果需要清屏就打開下一行)
+    // al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_draw_scaled_bitmap(
+        bgBmp,
+        0, 0,
+        al_get_bitmap_width(bgBmp),
+        al_get_bitmap_height(bgBmp),
+        0, 0,
+        Engine::GameEngine::GetInstance().GetScreenSize().x,
+        Engine::GameEngine::GetInstance().GetScreenSize().y,
+        0
+    );
+
     mapSystem_->render(nullptr);
 
-    ALLEGRO_TRANSFORM t;
-    al_identity_transform(&t);
-    al_translate_transform(&t, -mapSystem_->GetCameraX(), -mapSystem_->GetCameraY());
-    al_use_transform(&t);
-    // 3. 再把玩家和其他場景物件畫上去
-    Group::Draw();   // 或者 Engine::Group::Draw();
-
-    al_identity_transform(&t);
-    al_use_transform(&t);
-
-    // 固定屏幕座標
-    const int uiX = 20, uiY = 20, spacing = 40;
-
-    // 1. 金幣
-    al_draw_bitmap(coinBmp, uiX, uiY, 0);
-    Engine::Label coinLabel(
-        std::to_string(player->coin),   // 顯示數量
-        "pirulen.ttf", 16,              // 字體、大小
-        uiX + 32, uiY + 8,              // 文字位置
-        255, 255, 0, 255                // 顏色 (黃色)
+    // 1. 切到「世界座標 → 螢幕座標」的相機 transform
+    ALLEGRO_TRANSFORM cam;
+    al_identity_transform(&cam);
+    al_translate_transform(
+        &cam,
+        -mapSystem_->GetCameraX(),
+        -mapSystem_->GetCameraY()
     );
-    coinLabel.Draw();  // Label::Draw() 會用 al_draw_text :contentReference[oaicite:1]{index=1}
+    al_use_transform(&cam);
 
-    // 2. 紅藥水
+    // 2. 用相機 transform 畫地圖和所有世界物件
+    Group::Draw();      // 玩家 + 其他物件
+
+    // 3. 切回「螢幕座標系」──接下來畫 UI 層
+    al_use_transform(&uiTrans);
+
+    // 4. 繪製小地圖（右上角）
+    {
+        const float miniW   = 200;
+        const float miniH   = 200;
+        const float margin  = 10;
+        float screenW = Engine::GameEngine::GetInstance().GetScreenSize().x;
+        float screenH = Engine::GameEngine::GetInstance().GetScreenSize().y;
+        float miniX   = screenW - miniW - margin;
+        float miniY   = margin;
+
+        // 小地圖背景
+        al_draw_filled_rectangle(
+            miniX, miniY,
+            miniX + miniW, miniY + miniH,
+            al_map_rgba(0, 0, 0, 150)
+        );
+
+        // 地圖格子資料
+        const auto& tileData = mapSystem_->GetTileData();
+        int mapH = tileData.size();
+        int mapW = mapH > 0 ? tileData[0].size() : 0;
+        float gridW = miniW / mapW;
+        float gridH = miniH / mapH;
+
+        // 畫 1號／2號格子
+        for (int y = 0; y < mapH; ++y) {
+            for (int x = 0; x < mapW; ++x) {
+                int id = tileData[y][x];
+                if (id == 1) {
+                    al_draw_filled_rectangle(
+                        miniX + x*gridW,       miniY + y*gridH,
+                        miniX + (x+1)*gridW,   miniY + (y+1)*gridH,
+                        al_map_rgb(200,200,200)
+                    );
+                }
+                else if (id == 2) {
+                    al_draw_filled_rectangle(
+                        miniX + x*gridW,       miniY + y*gridH,
+                        miniX + (x+1)*gridW,   miniY + (y+1)*gridH,
+                        al_map_rgb(150,150,150)
+                    );
+                }
+            }
+        }
+
+        // 畫傳送點
+        for (auto& tp : mapSystem_->GetTeleports()) {
+            float cx = miniX + (tp.x + 0.5f) * gridW;
+            float cy = miniY + (tp.y + 0.5f) * gridH;
+            float r  = std::min(gridW, gridH) * 0.3f;
+            al_draw_filled_circle(cx, cy, r, al_map_rgb(255,0,0));
+        }
+
+        // 畫玩家位置
+        float mapPixelW = mapW * mapSystem_->tileWidth;
+        float mapPixelH = mapH * mapSystem_->tileHeight;
+        float px = player->Position.x / mapPixelW * miniW;
+        float py = player->Position.y / mapPixelH * miniH;
+        float pr = std::min(gridW, gridH) * 0.4f;
+        al_draw_filled_circle(miniX + px, miniY + py, pr, al_map_rgb(0,0,255));
+    }
+
+    // 5. 最後畫 UI：金幣、藥水圖示＆數量
+    const int uiX = 20, uiY = 20, spacing = 40;
+    // 金幣
+    al_draw_bitmap(coinBmp, uiX, uiY, 0);
+    Engine::Label(
+        std::to_string(player->coin),
+        "pirulen.ttf", 16,
+        uiX + 32, uiY + 8,
+        255, 255, 0, 255
+    ).Draw();
+    // 紅藥水
     al_draw_bitmap(redBmp, uiX, uiY + spacing, 0);
-    Engine::Label redLabel(
+    Engine::Label(
         std::to_string(player->redPotion),
         "pirulen.ttf", 16,
         uiX + 32, uiY + spacing + 8,
-        255,  0,   0, 255               // 紅色
-    );
-    redLabel.Draw();
-
-    // 3. 藍藥水
-    al_draw_bitmap(blueBmp, uiX, uiY + spacing * 2, 0);
-    Engine::Label blueLabel(
+        255,   0,   0, 255
+    ).Draw();
+    // 藍藥水
+    al_draw_bitmap(blueBmp, uiX, uiY + spacing*2, 0);
+    Engine::Label(
         std::to_string(player->bluePotion),
         "pirulen.ttf", 16,
-        uiX + 32, uiY + spacing * 2 + 8,
-         0,   0, 255, 255               // 藍色
-    );
-    blueLabel.Draw();
-
+        uiX + 32, uiY + spacing*2 + 8,
+          0,   0, 255, 255
+    ).Draw();
 }
+
 
 // 怪物工廠方法
 Monster* TestScene::createMonsterByType(MonsterType type, float x, float y) {
