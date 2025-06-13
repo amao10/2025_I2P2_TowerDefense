@@ -26,7 +26,7 @@ class TestScene final : public Engine::IScene{
 public:
 
     MapSystem* GetMapSystem() const { return mapSystem_; }
-
+    Player* GetPlayer() const { return player; }
     TestScene();
     ~TestScene();
 

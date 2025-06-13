@@ -35,9 +35,9 @@ void CoinPickup::Update(float deltaTime) {
         
     }
 
-    // 偵測玩家是否撿起
-    // if (Engine::Collider::IsCircleOverlap(Position, 8, scene->Player->Position, 16)) {
-    //     scene->EarnMoney(value); // 加錢
-    //     scene->PickupGroup->RemoveObject(objectIterator); // 拿掉自己
-    // }
+    //偵測玩家是否撿起
+    if (Engine::Collider::IsCircleOverlap(Position, 8, scene->GetPlayer()->Position, 16)) {
+        scene->GetPlayer()->coin++;
+        scene->PickupGroup->RemoveObject(objectIterator); // 拿掉自己
+    }
 }
