@@ -344,17 +344,25 @@ void Player::Update(float deltaTime) {
                     bool hit = !(attackRight < monsterLeft || attackLeft > monsterRight ||
                                  attackBottom < monsterTop || attackTop > monsterBottom);
 
-                    if (hit) {
-                        int damage = attack;
-                        if (currentWeapon == UNARMED)
-                            damage = attack; // 拳頭攻擊力較弱
-                        else if (currentWeapon == SWORD)
-                            damage = attack + 10; // 劍維持正常攻擊力
-                        monster->Hit(damage);
+                    // if (hit) {
+                    //     int damage = attack;
+                    //     if (currentWeapon == UNARMED)
+                    //         damage = attack; // 拳頭攻擊力較弱
+                    //     else if (currentWeapon == SWORD)
+                    //         damage = attack + 10; // 劍維持正常攻擊力
+                    //     monster->Hit(damage);
 
-                        attackHitDone = true; // 避免多次打中
-                        break;
-                    }
+                    //     attackHitDone = true; // 避免多次打中
+                    //     break;
+                    // }
+                        if (hit) {
+                            int damage = attack;
+                            if (currentWeapon == UNARMED)
+                                damage = attack;
+                            else if (currentWeapon == SWORD)
+                                damage = attack + 10;
+                            monster->Hit(damage);
+                        }
                 }
             }
         }
