@@ -1,12 +1,13 @@
 // MapSystem.cpp
 #include "MapSystem.hpp"
-
+#include <queue>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include "Teleport.hpp"
 
 using namespace Engine;
 
@@ -83,6 +84,8 @@ void MapSystem::unloadMap() {
 bool MapSystem::loadMap(const std::string& mapFile,
                         const std::string& objectFile)
 {
+    std::cerr << "[DEBUG] loadMap: map=" << mapFile
+              << " obj=" << objectFile << "\n";
     unloadMap();
     parseTileData(mapFile);
     parseObjectData(objectFile);
@@ -107,7 +110,6 @@ bool MapSystem::loadMap(const std::string& mapFile,
             tileGroup_->AddNewObject(new MapTile(bmp, px, py, tileWidth, tileHeight));
         }
     }
-
     return true;
 }
 
@@ -135,7 +137,7 @@ void MapSystem::parseTileData(const std::string& filename) {
 void MapSystem::parseObjectData(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        std::cerr << "打不開物件檔: " << filename << "\n";
+        std::cerr << "cannot open: " << filename << "\n";
         return;
     }
     std::string line;
@@ -148,10 +150,17 @@ void MapSystem::parseObjectData(const std::string& filename) {
             ropes.push_back(r);
         }
         else if (type == 'T') {
-            TeleportPoint tp; ss >> tp.x >> tp.y;
-            tp.targetMapId = 0;
-            tp.targetX = tp.x; tp.targetY = tp.y;
+            TeleportPoint tp;
+            ss
+            >> tp.x
+            >> tp.y
+            >> tp.targetMapFile
+            >> tp.targetObjFile
+            >> tp.targetX
+            >> tp.targetY;
             teleports.push_back(tp);
+            std::cerr << "[DEBUG] load T at ("<<tp.x<<","<<tp.y<<") -> "
+              << tp.targetMapFile << "\n";
         }
     }
 }
@@ -163,24 +172,74 @@ std::string MapSystem::pathForTileId(int id) {
         case 2: return "Resource/images/tiles/basefloor.png";
         // 更多 case…
         default:
-            throw std::invalid_argument("未知的 tile id: " + std::to_string(id));
+            throw std::invalid_argument("unknown tile id: " + std::to_string(id));
     }
 }
 
-void MapSystem::update(float dt, int playerX, int playerY) {
-    // TestScene 相机固定 (0,0)，这里可先不动
-    (void)dt; (void)playerX; (void)playerY;
+void MapSystem::update(float /*dt*/, int playerX, int playerY) {
+    // 让摄像机中心对准玩家
+    cameraX = playerX - screenWidth  / 2;
+    cameraY = playerY - screenHeight / 2;
+    // 计算最大可移动范围
+    float maxX = mapWidth  * tileWidth  - screenWidth;
+    float maxY = mapHeight * tileHeight - screenHeight;
+    // 限制在 [0, max]
+    cameraX = std::max(0.0f, std::min(cameraX, maxX));
+    cameraY = std::max(0.0f, std::min(cameraY, maxY));
 }
 
+
+// void MapSystem::update(float dt, int playerX, int playerY) {
+//     // TestScene 相机固定 (0,0)，这里可先不动
+//     (void)dt; (void)playerX; (void)playerY;
+// }
+
+// MapSystem.cpp
 void MapSystem::render(ALLEGRO_BITMAP* buffer) {
-    // 先切到 backbuffer 或 指定的 buffer
+    // 切到 backbuffer 或 指定 buffer
     if (buffer) al_set_target_bitmap(buffer);
     else        al_set_target_backbuffer(display_);
 
-    // 因为 TestScene 锁在 (0,0)，直接 draw 整个组
+    // 构造摄像机变换
+    ALLEGRO_TRANSFORM trans;
+    al_identity_transform(&trans);
+    al_translate_transform(&trans, -cameraX, -cameraY);
+    al_use_transform(&trans);
+
+    // 绘制瓦片
     if (tileGroup_) tileGroup_->Draw();
 
-    // TODO: 绘制 ropes/teleports…
+    // if (TeleportTrigger::bmp_) {
+    //     for (const auto& tp : teleports) {
+    //         float px = tp.x * tileWidth;
+    //         float py = tp.y * tileHeight;
+    //         al_draw_scaled_bitmap(
+    //             TeleportTrigger::bmp_,         // 由 TeleportTrigger 预加载的贴图
+    //             0, 0,
+    //             al_get_bitmap_width(TeleportTrigger::bmp_),
+    //             al_get_bitmap_height(TeleportTrigger::bmp_),
+    //             px, py,
+    //             tileWidth, tileHeight,
+    //             0
+    //         );
+    //     }
+    // }
+
+    // 重置变换（后面绘制不跟随相机的内容时要用）
+    al_identity_transform(&trans);
+    al_use_transform(&trans);
 }
+
+
+// void MapSystem::render(ALLEGRO_BITMAP* buffer) {
+//     // 先切到 backbuffer 或 指定的 buffer
+//     if (buffer) al_set_target_bitmap(buffer);
+//     else        al_set_target_backbuffer(display_);
+
+//     // 因为 TestScene 锁在 (0,0)，直接 draw 整个组
+//     if (tileGroup_) tileGroup_->Draw();
+
+//     // TODO: 绘制 ropes/teleports…
+// }
 
 // checkTeleport 同原本不变…

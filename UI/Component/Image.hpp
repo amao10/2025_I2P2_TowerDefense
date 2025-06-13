@@ -39,6 +39,7 @@ namespace Engine {
         /// </summary>
         /// <returns>Height of the original or scaled bitmap.</returns>
         int GetBitmapHeight() const;
+        ALLEGRO_BITMAP* GetBitmap() const;
     };
 }
 #endif   // IMAGE_HPP

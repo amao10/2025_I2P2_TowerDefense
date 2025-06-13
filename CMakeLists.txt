@@ -27,6 +27,12 @@ add_executable(2025_I2P2_TowerDefense
     Pickup/ItemPickup.cpp
     Pickup/ItemPickup.hpp
 
+    Monster/Monster.cpp
+    Monster/Monster.hpp
+    Monster/MushroomMonster.cpp
+    Monster/MushroomMonster.hpp
+    Monster/SnailMonster.cpp
+    Monster/SnailMonster.hpp
     # TODO HACKATHON-3 (3/3): Add the new enemy source files here
     Enemy/Enemy.cpp
     Enemy/Enemy.hpp
@@ -72,6 +78,8 @@ add_executable(2025_I2P2_TowerDefense
 
     Map/MapSystem.hpp
     Map/MapSystem.cpp
+    Map/Teleport.hpp
+    Map/Teleport.cpp
     
     # TODO HACKATHON-2 (3/3): Add the new scene source files here
     Scene/LoseScene.cpp

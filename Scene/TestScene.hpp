@@ -9,9 +9,17 @@
 #include "Engine/Point.hpp"
 
 #include "Map/MapSystem.hpp"
+#include "Map/Teleport.hpp"
 #include "Player/Player.hpp"
+#include "Monster/Monster.hpp"
+#include "Engine/Group.hpp"
 
 
+enum class MonsterType {
+    Mushroom,
+    Snail
+};
+class Monster;
 class TestScene final : public Engine::IScene{
 public:
 
@@ -32,9 +40,22 @@ public:
     // 繪製地圖
     void Draw() const override;
 
+    Group* PickupGroup;
+    Group* EffectGroup; 
+    Group* MonsterGroup;
+
 private:
     MapSystem* mapSystem_;
     float elapsedTime_;
     Player* player = nullptr;
+    
+    std::vector<Engine::Point> spawnPoints;
+    std::vector<MonsterType> spawnTypes;
+    std::vector<Monster*> monsters;
+    std::vector<float> respawnTimers;
 
+    Monster* createMonsterByType(MonsterType type, float x, float y);
+    void ClearTeleportTriggers();
+    void CreateTeleportTriggers();
+    std::vector<IObject*> teleportTriggers_;
 };

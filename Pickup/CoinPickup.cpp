@@ -1,11 +1,14 @@
 #include "CoinPickup.hpp"
 #include "Scene/PlayScene.hpp"
+#include "Scene/TestScene.hpp"
 #include "Engine/Collider.hpp"
 #include "Engine/GameEngine.hpp"
 #include "Engine/Resources.hpp"
 
-PlayScene* CoinPickup::getPlayScene() {
-    return dynamic_cast<PlayScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
+
+
+TestScene* CoinPickup::getTestScene() {
+    return dynamic_cast<TestScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
 }
 
 CoinPickup::CoinPickup(float x, float y, float value) :
@@ -23,7 +26,7 @@ CoinPickup::CoinPickup(float x, float y, float value) :
 
 void CoinPickup::Update(float deltaTime) {
     Engine::Sprite::Update(deltaTime);
-    auto scene = getPlayScene();
+    auto scene = getTestScene();
 
     frameCount++;
     if (frameCount % frameInterval == 0) {
