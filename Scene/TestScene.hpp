@@ -1,5 +1,7 @@
 #pragma once
 #include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_font.h>   // 定义了 ALLEGRO_FONT
+#include <allegro5/allegro_ttf.h>    // 如果你要用 TTF 字体
 #include <list>
 #include <memory>
 #include <utility>
@@ -48,6 +50,11 @@ public:
 
     void ClearTeleportTriggers();
     void CreateTeleportTriggers();
+
+    ALLEGRO_BITMAP* coinBmp   = nullptr;
+    ALLEGRO_BITMAP* redBmp    = nullptr;
+    ALLEGRO_BITMAP* blueBmp   = nullptr;
+    ALLEGRO_FONT*   uiFont    = nullptr;
 
 private:
     MapSystem* mapSystem_;
