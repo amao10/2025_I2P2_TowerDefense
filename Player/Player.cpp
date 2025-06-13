@@ -8,8 +8,8 @@
 #include "Scene/TestScene.hpp"
 #include "Engine/GameEngine.hpp"
 #include "Map/MapSystem.hpp"
-#include "Scene/TestScene.hpp"
 #include "UI/Component/Label.hpp"
+#include "Monster/Monster.hpp"
 
 Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
     : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y),
@@ -296,6 +296,31 @@ void Player::Update(float deltaTime) {
         animTimer = 0;
     }
 
+    //撞到 monster
+    for (auto& obj : scene->MonsterGroup->GetObjects()) {
+        Monster* monster = dynamic_cast<Monster*>(obj);
+        if (!monster) continue;
+
+        float playerLeft = Position.x - Size.x / 2;
+        float playerRight = Position.x + Size.x / 2;
+        float playerTop = Position.y - Size.y / 2;
+        float playerBottom = Position.y + Size.y / 2;
+
+        float monsterLeft = monster->Position.x - monster->Size.x / 2;
+        float monsterRight = monster->Position.x + monster->Size.x / 2;
+        float monsterTop = monster->Position.y - monster->Size.y / 2;
+        float monsterBottom = monster->Position.y + monster->Size.y / 2;
+
+        bool intersect = !(playerRight < monsterLeft || playerLeft > monsterRight ||
+                           playerBottom < monsterTop || playerTop > monsterBottom);
+
+        if (intersect) {
+            //TakeDamage(5);
+            if (Position.x < monster->Position.x) Position.x -= 50;
+            else Position.x += 50;
+            break; // 每幀只處理一個碰撞即可
+        }
+    }
     Sprite::Update(deltaTime);
 
     if (shouldClearLevelUpFlag) {

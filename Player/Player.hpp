@@ -58,7 +58,7 @@ protected:
     bool prevKeyM = false;
     bool prevKeyE = false;
 
-
+    
     void LoadAnimation();
 
 public:
