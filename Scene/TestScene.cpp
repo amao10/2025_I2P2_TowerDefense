@@ -35,8 +35,6 @@ TestScene::~TestScene() {
 
 void TestScene::Initialize() {
 
-    //playBGM
-    AudioHelper::PlayBGM("fairytale.ogg");
 
     // 1. 取得顯示器
     ALLEGRO_DISPLAY* display = al_get_current_display();
@@ -73,7 +71,8 @@ void TestScene::Initialize() {
     AddNewObject(PickupGroup = new Group());
     LoadMonstersForCurrentMap();
     
-
+    //playBGM
+    AudioHelper::PlayBGM("Fairytale.ogg");
     elapsedTime_ = 0.0f;
     Engine::LOG(Engine::INFO) << "TestScene initialized successfully.";
 }
