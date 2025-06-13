@@ -49,7 +49,7 @@ void TestScene::Initialize() {
         std::cerr << "[TestScene] loadMap exception: " << e.what() << std::endl;
         // 视情况可以提前返回，或保留空地图继续执行
     }
-    player = new Player(400, 200, 300, 100, 50, 30, 10); // 可調位置和屬性
+    player = new Player(400, 200, 300, 100, 50, 30, 0); // 可調位置和屬性
     AddNewObject(player); // 讓 engine 控制 update & draw
     // 4. 初始化计时器
     elapsedTime_ = 0.0f;
