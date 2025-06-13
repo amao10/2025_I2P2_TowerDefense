@@ -42,6 +42,7 @@ void TestScene::Initialize() {
 
     // 2. 建立地圖系統
     mapSystem_ = new MapSystem(display);
+    CreateTeleportTriggers();
 
     // 3. 嘗試載入地圖
     try {
@@ -53,13 +54,22 @@ void TestScene::Initialize() {
         Engine::LOG(Engine::ERROR) << "Map loading failed: " << e.what();
     }
 
+    player = new Player(400, 200, 300, 100, 50, 30, 10); // 可調位置和屬性
+    AddNewObject(player); // 讓 engine 控制 update & draw
+
+    CreateTeleportTriggers();
+
+    // 4. 初始化计时器
+    elapsedTime_ = 0.0f;
+
+
     // 4. 初始化 Group 和 Player
     AddNewObject(MonsterGroup = new Group());
     AddNewObject(EffectGroup = new Group());
     AddNewObject(PickupGroup = new Group());
 
-    player = new Player(400, 200, 300, 100, 50, 30, 10);
-    AddNewObject(player);
+    // player = new Player(400, 200, 300, 100, 50, 30, 10);
+    // AddNewObject(player);
 
     // --- 關鍵修正點：根據地圖高度和瓦片大小計算精確的 Y 座標 ---
     const int tileSize = mapSystem_->tileHeight; // 從 MapSystem 取得瓦片高度 (60)
@@ -132,6 +142,32 @@ void TestScene::Update(float deltaTime) {
     mapSystem_->update(deltaTime, 0, 0); // cameraX 和 cameraY 暫時固定為 0
     IScene::Update(deltaTime);
 
+    int px = static_cast<int>(player->Position.x);
+    int py = static_cast<int>(player->Position.y);
+    mapSystem_->update(deltaTime, px, py);
+
+    // 計算玩家當前格子（與 MapSystem 同樣的 tileW/H）
+    const int tileW = 90;
+    const int tileH = 60;
+    int gx = px / tileW;
+    int gy = (py + player->Size.y/2) / tileH;
+
+    // 偵測任何傳送點
+    for (auto& tp : mapSystem_->GetTeleports()) {
+        if (tp.x == gx && tp.y == gy) {
+            // 1. 清除舊觸發器
+            ClearTeleportTriggers();
+            // 2. 換圖
+            mapSystem_->unloadMap();
+            mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile);
+            // 3. 重設玩家位置
+            player->Position.x = static_cast<float>(tp.targetX);
+            player->Position.y = static_cast<float>(tp.targetY);
+            // 4. 重建觸發器（新的地圖裡可能有新的 teleports）
+            CreateTeleportTriggers();
+            break;  // 一次只能觸發一個
+        }
+    }
     // 怪物復活邏輯
     for (size_t i = 0; i < monsters.size(); ++i) {
         if (monsters[i] == nullptr || monsters[i]->Removed()) {
@@ -165,9 +201,32 @@ void TestScene::Update(float deltaTime) {
     }
 }
 
+
+// void TestScene::Update(float deltaTime) {
+//     elapsedTime_ += deltaTime;
+//     // 将 player 世界坐标传给 MapSystem
+//     int px = static_cast<int>(player->Position.x);
+//     int py = static_cast<int>(player->Position.y);
+//     mapSystem_->update(deltaTime, px, py);  // 原来是 (dt, 0, 0)
+//     IScene::Update(deltaTime);
+// }
+
+
+
 void TestScene::Draw() const {
-    IScene::Draw();
+    al_clear_to_color(al_map_rgb(0, 0, 0));
+    // 2. 先把地圖畫出來
     mapSystem_->render(nullptr);
+
+    ALLEGRO_TRANSFORM t;
+    al_identity_transform(&t);
+    al_translate_transform(&t, -mapSystem_->GetCameraX(), -mapSystem_->GetCameraY());
+    al_use_transform(&t);
+    // 3. 再把玩家和其他場景物件畫上去
+    Group::Draw();   // 或者 Engine::Group::Draw();
+
+    al_identity_transform(&t);
+    al_use_transform(&t);
 }
 
 // 怪物工廠方法
@@ -185,5 +244,38 @@ Monster* TestScene::createMonsterByType(MonsterType type, float x, float y) {
         default:
             Engine::LOG(Engine::ERROR) << "Unknown monster type: " << (int)type;
             return nullptr;
+    }
+}
+
+// void TestScene::Draw() const {
+//     // 1. 自行清空螢幕
+//     al_clear_to_color(al_map_rgb(0, 0, 0));
+//     // 2. 先把地圖畫出來
+//     mapSystem_->render(nullptr);
+
+//     ALLEGRO_TRANSFORM t;
+//     al_identity_transform(&t);
+//     al_translate_transform(&t, -mapSystem_->GetCameraX(), -mapSystem_->GetCameraY());
+//     al_use_transform(&t);
+//     // 3. 再把玩家和其他場景物件畫上去
+//     Group::Draw();   // 或者 Engine::Group::Draw();
+
+//     al_identity_transform(&t);
+//     al_use_transform(&t);
+// }
+
+
+void TestScene::ClearTeleportTriggers() {
+    for (auto* obj : teleportTriggers_) {
+        RemoveObject(obj->GetObjectIterator());    // 從場景物件群裡拔掉並 delete
+    }
+    teleportTriggers_.clear();
+}
+
+void TestScene::CreateTeleportTriggers() {
+    for (auto& tp : mapSystem_->GetTeleports()) {
+        auto* trigger = new TeleportTrigger(player, mapSystem_, tp);
+        AddNewObject(trigger);
+        teleportTriggers_.push_back(trigger);
     }
 }

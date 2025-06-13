@@ -9,6 +9,7 @@
 #include "Engine/Point.hpp"
 
 #include "Map/MapSystem.hpp"
+#include "Map/Teleport.hpp"
 #include "Player/Player.hpp"
 #include "Monster/Monster.hpp"
 #include "Engine/Group.hpp"
@@ -54,4 +55,7 @@ private:
     std::vector<float> respawnTimers;
 
     Monster* createMonsterByType(MonsterType type, float x, float y);
+    void ClearTeleportTriggers();
+    void CreateTeleportTriggers();
+    std::vector<IObject*> teleportTriggers_;
 };
