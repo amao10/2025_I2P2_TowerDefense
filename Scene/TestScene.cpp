@@ -112,7 +112,7 @@ void TestScene::Initialize() {
             // 為怪物設定巡邏模式和速度
             monster->patrolMode = Monster::PatrolMode::BottomRow;
             monster->movingRight = true;  // 初始向右移動
-            monster->moveSpeed = 50.0f;  // 設定巡邏速度 (例如 120 像素/秒)
+            monster->moveSpeed = 30.0f;  // 設定巡邏速度 (例如 120 像素/秒)
 
             MonsterGroup->AddNewObject(monster);
             monsters[i] = monster;
@@ -219,7 +219,7 @@ void TestScene::Update(float deltaTime) {
                     // 復活的怪物也要設定巡邏模式和速度
                     monster->patrolMode = Monster::PatrolMode::BottomRow;
                     monster->movingRight = true;
-                    monster->moveSpeed = 50.0f;
+                    monster->moveSpeed = 30.0f;
 
                     // 如果不需要尋路，這行可以移除
                     // auto mapDistance = mapSystem_->GetMapDistance();
