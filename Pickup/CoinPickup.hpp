@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 #include "Engine/Sprite.hpp"
-#include "Scene/PlayScene.hpp"
 #include "Scene/TestScene.hpp"
 
 class CoinPickup : public Engine::Sprite {
@@ -13,7 +12,6 @@ public:
     void Update(float deltaTime) override;
 
 protected:
-    PlayScene* getPlayScene();
     TestScene* getTestScene();
     int frameCount;
     int frameInterval;

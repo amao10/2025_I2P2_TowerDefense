@@ -32,7 +32,7 @@ void Monster::OnExplode() {
     // Position 是左上角，所以中心點是 Position + (width/2, height/2)
     float centerX = Position.x + GetBitmapWidth() / 2.0f;
     float centerY = Position.y + GetBitmapHeight() / 2.0f;
-    
+    getTestScene()->GetPlayer()->GainExp(20);
     getTestScene()->EffectGroup->AddNewObject(new ExplosionEffect(centerX, centerY));
     getTestScene()->PickupGroup->AddNewObject(new CoinPickup(centerX, centerY, money));
 }
