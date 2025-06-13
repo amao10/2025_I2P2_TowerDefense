@@ -33,8 +33,9 @@ public:
     PatrolMode patrolMode = PatrolMode::None;
     bool movingRight = true;
     float moveSpeed = 50.0f;
+    bool flipHorizontal;
 
-protected:
+protected:   
     std::vector<Engine::Point> path;
     float speed;
     float hp;

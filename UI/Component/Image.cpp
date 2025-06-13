@@ -33,4 +33,7 @@ namespace Engine {
     int Image::GetBitmapHeight() const {
         return al_get_bitmap_height(bmp.get());
     }
+    ALLEGRO_BITMAP* Image::GetBitmap() const {
+        return bmp.get(); // 回傳 smart pointer 所指向的原始 ALLEGRO_BITMAP*
+    }
 }

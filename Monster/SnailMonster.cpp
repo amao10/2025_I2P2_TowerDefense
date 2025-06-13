@@ -2,4 +2,4 @@
 
 #include "SnailMonster.hpp"
 
-SnailMonster::SnailMonster(int x,int y) : Monster("play/enemy-2.png", x, y, 10, 50, 5, 5){}
+SnailMonster::SnailMonster(int x,int y) : Monster("play/snail.png", x, y, 10, 50, 5, 5){}

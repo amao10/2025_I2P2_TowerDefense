@@ -20,6 +20,7 @@
 #include "Scene/TestScene.hpp"
 #include "UI/Animation/DirtyEffect.hpp"    // 如果有用到
 #include "UI/Animation/ExplosionEffect.hpp"
+#include "UI/Component/Image.hpp"
 
 // 獲取 TestScene 實例的輔助函數
 TestScene* Monster::getTestScene() {
@@ -45,6 +46,7 @@ Monster::Monster(std::string img, float x, float y, float radius, float speed, f
     patrolMode = PatrolMode::None;
     movingRight = true;
     moveSpeed = 100.0f;    // 預設巡邏速度
+    flipHorizontal = false;
 }
 
 // 判斷怪物是否應該被移除
@@ -66,7 +68,6 @@ void Monster::Hit(float damage) {
 
 // 尋路方法 (如果不需要怪物尋路，這個函數將不會被呼叫)
 void Monster::UpdatePath(const std::vector<std::vector<int>>& mapDistance) {
-    //Engine::LOG(Engine::ERROR) << "WARNING: UpdatePath function called, but monster might be in patrol mode!";
     // 這裡的邏輯是為尋路設計的，如果怪物只巡邏，則不會執行。
     // 如果您看到這裡的 LOG，表示有程式碼仍然嘗試為巡邏怪物呼叫此函數。
 
@@ -83,7 +84,6 @@ void Monster::UpdatePath(const std::vector<std::vector<int>>& mapDistance) {
     int num = mapDistance[y][x];
 
     if (num == -1) {
-        //Engine::LOG(Engine::ERROR) << "Monster cannot find path at map (" << x << "," << y << ") (starting point unreachable)";
         path.clear();
         return;
     }
@@ -106,7 +106,6 @@ void Monster::UpdatePath(const std::vector<std::vector<int>>& mapDistance) {
         }
 
         if (nextHops.empty()) {
-            Engine::LOG(Engine::ERROR) << "No next hop found, monster stuck at (" << pos.x << ", " << pos.y << "), distance: " << num;
             path.clear();
             return;
         }
@@ -130,56 +129,51 @@ void Monster::Update(float deltaTime) {
     }
 
     if (!map) {
-        Engine::LOG(Engine::ERROR) << "Monster::Update: Map system is null!";
         Sprite::Update(deltaTime);
         return;
     }
 
     const int tileSize = 60;
-    Engine::LOG(Engine::INFO) << "Before gravity: Monster Velocity.y = " << Velocity.y;
     // --- 重力與 Y 軸移動 ---
     Velocity.y += 1000 * deltaTime;
     Position.y += Velocity.y * deltaTime;
-    Engine::LOG(Engine::INFO) << "After gravity & move: Monster Velocity.y = " << Velocity.y << ", Position.y = " << Position.y;
 
-    // 計算怪物底部下方一個像素的網格Y座標和怪物當前網格X座標
-    int gridX = static_cast<int>((Position.x) / tileSize);
-    int gridYBelow = static_cast<int>((Position.y + GetBitmapHeight() / 2 + 1) / tileSize);
-
-    // 限制 gridX 和 gridYBelow 在地圖範圍內
-    gridX = std::clamp(gridX, 0, map->mapWidth - 1);
+    float monsterBottomY = Position.y + GetBitmapHeight() / 2.0f;
+    int gridYBelow = static_cast<int>((monsterBottomY + 1) / 60);
     gridYBelow = std::clamp(gridYBelow, 0, map->mapHeight - 1);
 
     const auto& tileData = map->GetTileData();
+    bool wasOnGround = onGround;
+    onGround = false;
 
-    // --- 地面碰撞檢測與落地處理 ---
-    bool wasOnGround = onGround;    // 記錄上一幀的 onGround 狀態
-    onGround = false;               // 預設不在地面上
+    int startTileX = static_cast<int>(Position.x / 90);
+    int endTileX = static_cast<int>((Position.x + GetBitmapWidth() - 1) / 90);
 
-    // 加入日誌：顯示怪物的當前位置和計算出的瓦片座標
-    // Engine::LOG(Engine::INFO) << "Monster position (" << this->Position.x << "," << this->Position.y
-    //                           << ") GridX: " << gridX << " GridYBelow: " << gridYBelow
-    //                           << " VelocityY: " << Velocity.y;
+    startTileX = std::clamp(startTileX, 0, map->mapWidth - 1);
+    endTileX = std::clamp(endTileX, 0, map->mapWidth - 1);
 
-    if (gridYBelow >= 0 && gridYBelow < tileData.size() && gridX >= 0 && gridX < tileData[0].size()) {
-        int tileId = tileData[gridYBelow][gridX];
-        Engine::LOG(Engine::INFO) << "Monster Tile Below: ID=" << tileId << " at (" << gridX << "," << gridYBelow << ")";
-        if ((tileId == 1 || tileId == 2) && Velocity.y >= 0) {
-            Velocity.y = 0;
-            onGround = true;
-            // 精確調整怪物位置
-            Position.y = gridYBelow * tileSize - GetBitmapHeight() / 2.0f;
-            if (!wasOnGround) {    // 只有在剛接觸地面時才發出日誌
-                //Engine::LOG(Engine::INFO) << "Monster landed! New Y position: " << Position.y;
+    for (int x = startTileX; x <= endTileX; ++x) {
+        if (gridYBelow >= 0 && gridYBelow < tileData.size() && x >= 0 && x < tileData[0].size()) {
+            int tileId = tileData[gridYBelow][x];
+            if ((tileId == 1 || tileId == 2) && Velocity.y >= 0) {
+                onGround = true;
+                break;
             }
         }
+    }
+
+    if (onGround) {
+        Velocity.y = 0;
+        Position.y = gridYBelow * 60 - GetBitmapHeight() / 2.0f;
+        if (!wasOnGround) {
+            //Engine::LOG(Engine::INFO) << "Monster landed! New Y position: " << Position.y;
+        }
     } else {
-        Engine::LOG(Engine::ERROR) << "Monster bottom tile (" << gridX << "," << gridYBelow << ") is out of map bounds.";
-        if (Position.y > map->mapHeight * tileSize + GetBitmapHeight()) {    // 如果掉出地圖很遠
-            hp = 0;
-            //Engine::LOG(Engine::INFO) << "Monster fell off the map and died.";
+        if (Position.y > map->mapHeight * 60 + GetBitmapHeight()) {
+            hp = 0; // Monster fell off map
         }
     }
+
 
     Engine::LOG(Engine::INFO) << "Monster onGround state: " << (onGround ? "TRUE" : "FALSE");
 
@@ -198,10 +192,15 @@ void Monster::Update(float deltaTime) {
     }
 
     // 更新怪物的 Rotation
+    // if (Velocity.x > 0) {
+    //     Rotation = 0;
+    // } else if (Velocity.x < 0) {
+    //     Rotation = ALLEGRO_PI;
+    // }
     if (Velocity.x > 0) {
-        Rotation = 0;
+        flipHorizontal = false; // 向右走，不翻轉
     } else if (Velocity.x < 0) {
-        Rotation = ALLEGRO_PI;
+        flipHorizontal = true;  // 向左走，水平翻轉
     }
     // 加入日誌：顯示最終的速度
     //Engine::LOG(Engine::INFO) << "Monster Final Velocity: X=" << Velocity.x << " Y=" << Velocity.y;
@@ -211,8 +210,33 @@ void Monster::Update(float deltaTime) {
 
 // 繪製怪物（包含血條）
 void Monster::Draw() const {
-    Sprite::Draw();
+    // Determine drawing flags for this Monster
+    int flags = 0;
+    if (flipHorizontal) { // Use the Monster's own flipHorizontal
+        flags |= ALLEGRO_FLIP_HORIZONTAL;
+    }
 
+    // Get the bitmap from the base Image class (inherited by Sprite, then Monster)
+    ALLEGRO_BITMAP* currentBitmap = GetBitmap(); // Assuming Image has GetBitmap()
+
+    if (!currentBitmap) // Safety check
+        return;
+    if (!Visible) // Inherited from IObject
+        return;
+
+    // Draw the monster with tint, scale, rotation, and custom flip flags
+    al_draw_tinted_scaled_rotated_bitmap(
+        currentBitmap,
+        Tint,                       // From Sprite base class
+        Anchor.x * GetBitmapWidth(),
+        Anchor.y * GetBitmapHeight(),
+        Position.x,
+        Position.y,
+        Size.x / GetBitmapWidth(), // Scale X factor
+        Size.y / GetBitmapHeight(),// Scale Y factor
+        Rotation,                   // From Sprite base class
+        flags                       // Monster-specific flip flags
+    );
     // 血條繪製
     const int barWidth = 40;
     const int barHeight = 5;
