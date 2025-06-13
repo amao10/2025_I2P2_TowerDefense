@@ -75,7 +75,7 @@ void Monster::Hit(float damage) {
         // 建議這裡使用一個標誌來標記怪物為「待移除」，而不是直接移除
         // 因為直接在 Update 循環中移除物件可能導致迭代器失效
         getTestScene()->MonsterGroup->RemoveObject(objectIterator);
-        AudioHelper::PlayAudio("explosion.wav");
+        AudioHelper::PlayAudio("monster_die.ogg");
     }
 }
 
