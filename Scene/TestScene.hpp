@@ -18,7 +18,8 @@
 
 enum class MonsterType {
     Mushroom,
-    Snail
+    Snail,
+    UNKNOWN
 };
 class Monster;
 class TestScene final : public Engine::IScene{
@@ -50,8 +51,8 @@ private:
     float elapsedTime_;
     Player* player = nullptr;
     
-    std::vector<Engine::Point> spawnPoints;
-    std::vector<MonsterType> spawnTypes;
+    // std::vector<Engine::Point> spawnPoints;
+    // std::vector<MonsterType> spawnTypes;
     std::vector<Monster*> monsters;
     std::vector<float> respawnTimers;
 
@@ -59,4 +60,5 @@ private:
     void ClearTeleportTriggers();
     void CreateTeleportTriggers();
     std::vector<IObject*> teleportTriggers_;
+    void LoadMonstersForCurrentMap();
 };
