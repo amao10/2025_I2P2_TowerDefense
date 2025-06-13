@@ -46,6 +46,9 @@ public:
     Group* EffectGroup; 
     Group* MonsterGroup;
 
+    void ClearTeleportTriggers();
+    void CreateTeleportTriggers();
+
 private:
     MapSystem* mapSystem_;
     float elapsedTime_;
@@ -57,8 +60,8 @@ private:
     std::vector<float> respawnTimers;
 
     Monster* createMonsterByType(MonsterType type, float x, float y);
-    void ClearTeleportTriggers();
-    void CreateTeleportTriggers();
+    // void ClearTeleportTriggers();
+    // void CreateTeleportTriggers();
     std::vector<IObject*> teleportTriggers_;
     void LoadMonstersForCurrentMap();
 };

@@ -42,7 +42,7 @@ void TestScene::Initialize() {
 
     // 2. 建立地圖系統
     mapSystem_ = new MapSystem(display);
-    CreateTeleportTriggers();
+    //CreateTeleportTriggers();
 
     // 3. 嘗試載入地圖
     try {
@@ -139,29 +139,29 @@ void TestScene::Update(float deltaTime) {
     }
 
     // 偵測任何傳送點
-    for (auto& tp : mapSystem_->GetTeleports()) {
-        if (tp.x == gx && tp.y == gy) {
-            // 1. 清除舊觸發器
-            ClearTeleportTriggers();
-            for (Monster* m : monsters) {
-                if (m) delete m; // 確保刪除怪物物件
-            }
-            monsters.clear();
-            MonsterGroup->Clear();// 清空 Group，但不會 delete 記憶體
-            respawnTimers.clear();
-            // 2. 換圖
-            mapSystem_->unloadMap();
-            mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile,tp.targetMonsterSpawnFile);
-            // 3. 重設玩家位置
-            player->Position.x = static_cast<float>(tp.targetX);
-            player->Position.y = static_cast<float>(tp.targetY);
-            // 5. 為新地圖生成怪物 (重要！)
-            LoadMonstersForCurrentMap();
-            // 4. 重建觸發器（新的地圖裡可能有新的 teleports）
-            CreateTeleportTriggers();
-            break;  // 一次只能觸發一個
-        }
-    }
+    // for (auto& tp : mapSystem_->GetTeleports()) {
+    //     if (tp.x == gx && tp.y == gy) {
+    //         // 1. 清除舊觸發器
+    //         ClearTeleportTriggers();
+    //         for (Monster* m : monsters) {
+    //             if (m) delete m; // 確保刪除怪物物件
+    //         }
+    //         monsters.clear();
+    //         MonsterGroup->Clear();// 清空 Group，但不會 delete 記憶體
+    //         respawnTimers.clear();
+    //         // 2. 換圖
+    //         mapSystem_->unloadMap();
+    //         mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile,tp.targetMonsterSpawnFile);
+    //         // 3. 重設玩家位置
+    //         player->Position.x = static_cast<float>(tp.targetX);
+    //         player->Position.y = static_cast<float>(tp.targetY);
+    //         // 5. 為新地圖生成怪物 (重要！)
+    //         LoadMonstersForCurrentMap();
+    //         // 4. 重建觸發器（新的地圖裡可能有新的 teleports）
+    //         CreateTeleportTriggers();
+    //         break;  // 一次只能觸發一個
+    //     }
+    // }
     // 怪物復活邏輯 - 需要修改為基於 mapSystem_->GetMonsterSpawns() 來獲取原始生成點
     // 您不再需要全局的 spawnPoints 和 spawnTypes
     for (size_t i = 0; i < monsters.size(); ++i) {
