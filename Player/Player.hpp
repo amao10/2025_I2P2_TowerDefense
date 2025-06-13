@@ -16,8 +16,15 @@ protected:
     int speed;
     int hp, maxHp;
     int mp, maxMp;
-    int exp;
+    int exp = 0;
     int attack, defense;
+
+
+    int level = 1;                   
+    int expToLevelUp = 100*level;          
+    int prevExpToLevelUp = 100*level;
+    bool justLeveledUp = false;
+    bool shouldClearLevelUpFlag = false; //延遲清除flag:畫EXP條用
 
     enum Direction { UP, DOWN, LEFT, RIGHT } direction;
     enum WeaponType { UNARMED, SWORD, HANDCANNON };
@@ -40,18 +47,42 @@ protected:
 
     Engine::Point velocity;
     bool onGround = false;
-
+    bool skipLandingThisFrame = false;
     bool proning = false;
     bool onRope = false;
+
+    //test key debounce
+    bool prevKeyZ = false;
+    bool prevKeyC = false;
+    bool prevKeyH = false;
+    bool prevKeyM = false;
+    bool prevKeyE = false;
+
 
     void LoadAnimation();
 
 public:
+    
     Player(int x, int y, int speed, int hp, int mp, int atk, int def);
     ~Player();
     void Update(float deltaTime) override;
     void Draw() const override;
     void SetWeapon(WeaponType weapon); // switch weapon
+    //EXP & level
+    void GainExp(int amount); 
+    void LevelUp();           
+
+    //for UI
+    int GetLevel() const;
+    int GetExp() const;
+    int GetExpToLevelUp() const;
+
+    void TakeDamage(int dmg); //-HP
+    bool UseMP(int MPcost); //-MP
+    void Heal(int amount); //+HP
+    void RecoverMP(int amount); //+MP
+
+
 };
 
 #endif  // PLAYER_HPP
