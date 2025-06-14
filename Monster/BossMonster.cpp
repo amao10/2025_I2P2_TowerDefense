@@ -80,6 +80,18 @@ void BossMonster::DestroyOrbs() {
     // Engine::LOG(Engine::INFO) << "Destroyed all BossOrbs.";
 }
 
+void BossMonster::OnExplode() {
+    Engine::LOG(Engine::INFO) << "BossMonster exploded! Switching to Win Scene.";
+    // Clean up orbs immediately (optional, destructor would also do this, but explicit is clear)
+    DestroyOrbs(); 
+
+    // Trigger WinScene
+    Engine::GameEngine::GetInstance().ChangeScene("end"); // Assuming your WinScene is registered with ID "win"
+
+    // Important: Do NOT call Monster::OnExplode() here unless you want the generic monster effects (coins, etc.)
+    // If you want some of the base monster effects (like explosion effect), you can explicitly call it:
+    // Monster::OnExplode(); // Uncomment this line if you want the generic explosion effect and pickups
+}
 
 // BossMonster 的更新邏輯
 void BossMonster::Update(float deltaTime) {

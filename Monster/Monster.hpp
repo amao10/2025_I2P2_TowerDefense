@@ -25,6 +25,9 @@ public:
     void Draw() const override;
     bool Removed() const;
     int damageToPlayer; // 確保有這個成員變數
+    float speed;
+    float hp;
+    float Maxhp;
     float attackCooldown;
     //Engine::Point velocity; // 怪物的速度，包含垂直速度
     bool onGround = false;  
@@ -43,10 +46,7 @@ public:
 
 protected:   
     std::vector<Engine::Point> path;
-    float speed;
-    float hp;
     int money;
-    float Maxhp;
     float reachEndTime;
     float turnAroundCooldown; 
     TestScene* getTestScene();

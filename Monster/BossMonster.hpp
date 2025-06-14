@@ -10,7 +10,7 @@ class BossMonster : public Monster {
 public:
     BossMonster(int x, int y);
     ~BossMonster() override;
-
+    void OnExplode() override; 
     void Update(float deltaTime) override;
 
     // --- CHANGE THESE TO PUBLIC ---

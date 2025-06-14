@@ -25,8 +25,15 @@ enum class MonsterType;
 struct MonsterSpawnInfo {
     Engine::Point position;
     MonsterType type;
+    // --- ADD THESE MEMBER VARIABLES ---
+    float initialSpeed;
+    float initialHP;
+    int initialDamage;
+    // ----------------------------------
+
+    // Constructor to properly initialize all members
     MonsterSpawnInfo(Engine::Point pos, MonsterType t, float speed, float hp, int damage)
-        : position(pos), type(t) {}
+        : position(pos), type(t), initialSpeed(speed), initialHP(hp), initialDamage(damage) {}
 };
 class MapSystem {
 public:
