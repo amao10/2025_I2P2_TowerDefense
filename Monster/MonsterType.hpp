@@ -6,7 +6,8 @@
 /// </summary>
 enum class MonsterType {
     Mushroom, // Represents a Mushroom monster
-    Snail,    // Represents a Snail monster
+    Snail,
+    Boss,    // Represents a Snail monster
     // Add other monster types here as you create them, e.g.:
     // Goblin,
     // Dragon,

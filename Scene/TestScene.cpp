@@ -26,6 +26,7 @@
 #include "Monster/Monster.hpp"
 #include "Monster/MushroomMonster.hpp"
 #include "Monster/SnailMonster.hpp"
+#include "Monster/BossMonster.hpp"
 #include "Map/MapSystem.hpp"
 
 static void SavePlayerStatus(const std::string& path, Player* p) {
@@ -76,6 +77,7 @@ void TestScene::Initialize() {
         Engine::LOG(Engine::ERROR) << "Map loading failed: " << e.what();
     }
 
+//<<<<<<< HEAD
     int px = 400, py = 200;
     int speed = 300, level = 1, hp = 100, mp = 50, atk = 30, def = 0;
     int coin = 0, redPotion = 0, bluePotion = 0;
@@ -120,6 +122,9 @@ void TestScene::Initialize() {
     player->coin = coin;
     player->redPotion = redPotion;
     player->bluePotion = bluePotion;
+// =======
+//     player = new Player(400, 200, 300, 1000, 500, 10, 10); // 可調位置和屬性
+// >>>>>>> upstream/main
     AddNewObject(player); // 讓 engine 控制 update & draw
 
     CreateTeleportTriggers();
@@ -144,6 +149,9 @@ void TestScene::Initialize() {
     AddNewObject(MonsterGroup = new Group());
     AddNewObject(EffectGroup = new Group());
     AddNewObject(PickupGroup = new Group());
+    AddNewObject(BulletGroup = new Engine::Group());
+
+    AddNewObject(BossOrbGroup = new Group());
     LoadMonstersForCurrentMap();
     
     //playBGM
@@ -172,6 +180,7 @@ void TestScene::Terminate() {
     MonsterGroup = nullptr;
     EffectGroup = nullptr;
     PickupGroup = nullptr;
+    BossOrbGroup = nullptr;
 }
 
 void TestScene::Update(float deltaTime) {
@@ -473,6 +482,9 @@ Monster* TestScene::createMonsterByType(MonsterType type, float x, float y) {
             Engine::LOG(Engine::INFO) << "Creating SnailMonster.";
             // SnailMonster("resources/images/snail.png", x, y, radius, speed, hp, money)
             return new SnailMonster(x, y);
+        case MonsterType::Boss:
+            Engine::LOG(Engine::INFO) << "Creating BossMonster.";
+            return new BossMonster(x,y);
         default:
             Engine::LOG(Engine::ERROR) << "Unknown monster type: " << (int)type;
             return nullptr;

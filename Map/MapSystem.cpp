@@ -56,6 +56,7 @@ public:
 MonsterType StringToMonsterType(const std::string& s) {
     if (s == "MUSHROOM") return MonsterType::Mushroom;
     if (s == "SNAIL") return MonsterType::Snail;
+    if (s == "BOSS") return MonsterType::Boss;
     // Add other monster types as needed
     return MonsterType::UNKNOWN;
 }
