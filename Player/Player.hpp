@@ -66,6 +66,13 @@ protected:
     float invincibleTimer = 0.0f;
     const float invincibleDuration = 1.0f; // 一秒無敵
 
+    // Skill 
+    bool skillActive = false;
+    bool skillUsedInAir = false;
+    float skillScale = 1.0f;
+    float skillCooldown = 0.0f;
+    const float skillCooldownTime = 3.0f; // 3secs
+
     void LoadAnimation();
 
 public:
