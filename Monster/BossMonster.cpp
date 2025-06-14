@@ -33,9 +33,9 @@ BossMonster::~BossMonster() {
 // 創建環繞 Boss 的球體
 void BossMonster::CreateOrbs() {
     // 創建三個 BossOrb 實例，並賦予它們不同的初始角度偏移，使其分佈均勻
-    orbs.emplace_back(new BossOrb(this, 0.0f));                  // 第一個球，0 度
-    orbs.emplace_back(new BossOrb(this, 2 * PI_F / 3.0f));       // 第二個球，120 度
-    orbs.emplace_back(new BossOrb(this, 4 * PI_F / 3.0f));       // 第三個球，240 度
+    orbs.emplace_back(new BossOrb(this, -PI_F / 2.0f));                  // 第一個球，正上方
+    orbs.emplace_back(new BossOrb(this, -PI_F / 2.0f + 2 * PI_F / 3.0f));       // 第二個球，向右下方 120度
+    orbs.emplace_back(new BossOrb(this, -PI_F / 2.0f + 4 * PI_F / 3.0f));         // 第三個球，240 度
 
     // 獲取當前遊戲場景的實例
     TestScene* scene = getTestScene();
