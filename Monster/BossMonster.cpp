@@ -16,10 +16,10 @@ const float PI_F = 3.1415926535f;
 // BossMonster 構造函數
 // 初始化 BossMonster 的基本屬性並創建環繞的球體
 BossMonster::BossMonster(int x, int y) : Monster("play/mistKnight.png", x, y, 80, 50, 100, 100) {
-    damageToPlayer = 50; // Boss 對玩家的基礎傷害
-    speed = 150.0f;      // Boss 的移動速度
+    damageToPlayer = 20; // Boss 對玩家的基礎傷害
+    speed = 80.0f;      // Boss 的移動速度
     patrolMode = PatrolMode::None; // Boss 不使用巡邏模式，將追蹤玩家
-
+    hp = 100;
     // 在構造時創建 Boss 的環繞球體
     CreateOrbs();
 }
@@ -33,9 +33,9 @@ BossMonster::~BossMonster() {
 // 創建環繞 Boss 的球體
 void BossMonster::CreateOrbs() {
     // 創建三個 BossOrb 實例，並賦予它們不同的初始角度偏移，使其分佈均勻
-    orbs.emplace_back(new BossOrb(this, 0.0f));                  // 第一個球，0 度
-    orbs.emplace_back(new BossOrb(this, 2 * PI_F / 3.0f));       // 第二個球，120 度
-    orbs.emplace_back(new BossOrb(this, 4 * PI_F / 3.0f));       // 第三個球，240 度
+    orbs.emplace_back(new BossOrb(this, -PI_F / 2.0f));                  // 第一個球，正上方
+    orbs.emplace_back(new BossOrb(this, -PI_F / 2.0f + 2 * PI_F / 3.0f));       // 第二個球，向右下方 120度
+    orbs.emplace_back(new BossOrb(this, -PI_F / 2.0f + 4 * PI_F / 3.0f));         // 第三個球，240 度
 
     // 獲取當前遊戲場景的實例
     TestScene* scene = getTestScene();
@@ -80,6 +80,18 @@ void BossMonster::DestroyOrbs() {
     // Engine::LOG(Engine::INFO) << "Destroyed all BossOrbs.";
 }
 
+void BossMonster::OnExplode() {
+    Engine::LOG(Engine::INFO) << "BossMonster exploded! Switching to Win Scene.";
+    // Clean up orbs immediately (optional, destructor would also do this, but explicit is clear)
+    DestroyOrbs(); 
+
+    // Trigger WinScene
+    Engine::GameEngine::GetInstance().ChangeScene("end"); // Assuming your WinScene is registered with ID "win"
+
+    // Important: Do NOT call Monster::OnExplode() here unless you want the generic monster effects (coins, etc.)
+    // If you want some of the base monster effects (like explosion effect), you can explicitly call it:
+    // Monster::OnExplode(); // Uncomment this line if you want the generic explosion effect and pickups
+}
 
 // BossMonster 的更新邏輯
 void BossMonster::Update(float deltaTime) {

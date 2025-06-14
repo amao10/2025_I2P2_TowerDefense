@@ -261,7 +261,7 @@ void TestScene::Update(float deltaTime) {
                         Engine::LOG(Engine::ERROR) << "Monster respawn failed for type " << (int)spawnInfo.type;
                     }
                 } else {
-                    Engine::LOG(Engine::ERROR) << "Respawn index " << i << " out of bounds for current map monster spawns.";
+                    //Engine::LOG(Engine::ERROR) << "Respawn index " << i << " out of bounds for current map monster spawns.";
                 }
             }
         }
@@ -332,7 +332,10 @@ void TestScene::LoadMonstersForCurrentMap() {
         if (monster) {
             monster->patrolMode = Monster::PatrolMode::BottomRow;
             monster->movingRight = true;
-            //monster->moveSpeed = spawnInfo.initialSpeed; // 使用從配置讀取的速度
+            monster->speed = spawnInfo.initialSpeed;
+            monster->hp = spawnInfo.initialHP;
+            monster->Maxhp = spawnInfo.initialHP; // 通常 Maxhp 也需要設置為初始 HP
+            monster->damageToPlayer = spawnInfo.initialDamage;// 使用從配置讀取的速度
 
             MonsterGroup->AddNewObject(monster);
             monsters[i] = monster;

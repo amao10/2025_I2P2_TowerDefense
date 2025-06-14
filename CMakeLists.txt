@@ -109,8 +109,9 @@ add_executable(2025_I2P2_TowerDefense
     Scene/TestScene.cpp
     Scene/EndScene.hpp
     Scene/EndScene.cpp
-
-
+    Scene/VictoryScene.cpp
+    Scene/VictoryScene.hpp
+    
     Turret/LaserTurret.cpp
     Turret/LaserTurret.hpp
     Turret/MachineGunTurret.cpp

@@ -46,8 +46,8 @@ void BossOrb::Update(float deltaTime) {
 
     // 計算球的新位置
     // Boss Monster 的中心作為軌道中心
-    float bossCenterX = parentBoss->Position.x + parentBoss->GetBitmapWidth() / 2.0f;
-    float bossCenterY = parentBoss->Position.y + parentBoss->GetBitmapHeight() / 2.0f;
+    float bossCenterX = parentBoss->Position.x + parentBoss->GetBitmapWidth() / 2.0f +45;
+    float bossCenterY = parentBoss->Position.y + parentBoss->GetBitmapHeight() / 2.0f +30;
 
     // 計算球的相對位置
     float relativeX = orbitRadius * std::cos(currentAngle);

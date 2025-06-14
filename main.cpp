@@ -14,6 +14,7 @@
 #include "Scene/ScoreBoardScene.hpp"
 #include "Scene/TestScene.hpp"
 #include "Scene/EndScene.hpp"
+#include "Scene/VictoryScene.hpp"
 
 int main(int argc, char **argv) {
 	Engine::LOG::SetConfig(true);
@@ -31,6 +32,7 @@ int main(int argc, char **argv) {
 	game.AddNewScene("scoreboard-scene",new ScoreBoardScene());
 	game.AddNewScene("test", new TestScene());
 	game.AddNewScene("end", new EndScene());
+	game.AddNewScene("victory", new VictoryScene());
 
 
     // TODO HACKATHON-1 (1/1): Change the start scene
