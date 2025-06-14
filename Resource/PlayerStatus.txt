@@ -1,11 +1,11 @@
-PositionX=670
-PositionY=744
+PositionX=373
+PositionY=984
 Speed=300
-HP=78
+HP=178
 MP=60
 Level=2
 Attack=30
 Defense=11
-Coin=28
+Coin=32
 RedPotion=5
-BluePotion=9
+BluePotion=10
