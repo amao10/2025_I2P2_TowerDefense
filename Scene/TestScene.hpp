@@ -21,6 +21,7 @@
 enum class MonsterType {
     Mushroom,
     Snail,
+    Boss,
     UNKNOWN
 };
 class Monster;
