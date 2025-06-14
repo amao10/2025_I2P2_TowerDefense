@@ -127,13 +127,20 @@ void Player::Update(float deltaTime) {
 
     float moveDist = speed * deltaTime / 2;
     bool moved = false;
-
+    
     auto* scene = dynamic_cast<TestScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
     if (!scene) return;
 
     MapSystem* map = scene->GetMapSystem();
     if (!map) return;
     
+    // skillcooldown timer
+    if (skillCooldown > 0.0f) {
+        skillCooldown -= deltaTime;
+        if (skillCooldown < 0.0f) skillCooldown = 0.0f;
+    }
+
+
     const int tileW = 90;
     const int tileH = 60;
     int gridX = static_cast<int>((Position.x) / tileW);
@@ -163,11 +170,11 @@ void Player::Update(float deltaTime) {
     }
     prevKeyZ = keyZ;
 
-    bool keyC = al_key_down(&keyState, ALLEGRO_KEY_C);
+    /*bool keyC = al_key_down(&keyState, ALLEGRO_KEY_C);
     if (keyC && !prevKeyC) {
         UseMP(10); // 扣魔
     }
-    prevKeyC = keyC;
+    prevKeyC = keyC;*/
 
     bool keyA = al_key_down(&keyState, ALLEGRO_KEY_A);
     if (keyA && !prevKeyA) {
@@ -192,9 +199,11 @@ void Player::Update(float deltaTime) {
     if (keyH && !prevKeyH) {
         if (redPotion > 0) {
             redPotion--;
+            AudioHelper::PlaySample("drink.ogg");
             Heal(50);
         } else if (coin >= 5) {
             coin -= 5;
+            AudioHelper::PlaySample("drink.ogg");
             Heal(50);
         }
     }
@@ -204,13 +213,34 @@ void Player::Update(float deltaTime) {
     if (keyM && !prevKeyM) {
         if (bluePotion > 0) {
             bluePotion--;
+            AudioHelper::PlaySample("drink.ogg");
             RecoverMP(25);
         } else if (coin >= 5) {
             coin -= 5;
+            AudioHelper::PlaySample("drink.ogg");
             RecoverMP(25);
         }
     }
     prevKeyM = keyM;
+
+    // skill jump
+    static bool skillPrevPressed = false;
+    bool skillPressed = al_key_down(&keyState, ALLEGRO_KEY_C);
+
+    if (skillPressed && !skillPrevPressed && !skillActive && skillCooldown == 0.0f && onGround) {
+        if (mp >= 25) {
+            skillActive = true;
+            skillScale = 4.0f;           
+            velocity.y = -600;           
+            onGround = false;
+            skillUsedInAir = false;      
+            skillCooldown = skillCooldownTime; 
+            mp -= 25;
+            AudioHelper::PlaySample("skill.ogg");           
+        } 
+    }
+    skillPrevPressed = skillPressed;
+
 
 
     // jump&jump down
@@ -258,6 +288,27 @@ void Player::Update(float deltaTime) {
             velocity.y = 0;
             onGround = true;
             Position.y = gridYBelow * tileH - Size.y / 2;
+
+
+            //skill touchground
+             if (skillActive && !skillUsedInAir) {
+            // 落地時觸發秒殺
+            auto* scene = dynamic_cast<TestScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
+            if (scene) {
+                for (auto& obj : scene->MonsterGroup->GetObjects()) {
+                    Monster* monster = dynamic_cast<Monster*>(obj);
+                    if (monster && monster->Visible) {
+                        monster->Hit(9999); 
+                    }
+                }
+            }
+            skillUsedInAir = true;
+        }
+
+        if (skillActive && skillUsedInAir) {
+            skillActive = false;
+            skillScale = 1.0f; // 變回原來大小
+        }
         }
         else {
             onGround = false;
@@ -467,10 +518,14 @@ void Player::Draw() const {
     }
 
     if (bmp) {
-        al_draw_bitmap(bmp,
-            Position.x - al_get_bitmap_width(bmp) / 2,
-            proning ? Position.y - 5 : Position.y - al_get_bitmap_height(bmp) / 2,
-            direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
+        al_draw_scaled_bitmap(
+        bmp,
+        0, 0, al_get_bitmap_width(bmp), al_get_bitmap_height(bmp),
+        Position.x - al_get_bitmap_width(bmp) * skillScale / 2,
+        proning ? Position.y - 5 : Position.y - al_get_bitmap_height(bmp) * skillScale / 2,
+        al_get_bitmap_width(bmp) * skillScale,
+        al_get_bitmap_height(bmp) * skillScale,
+        direction == RIGHT ? ALLEGRO_FLIP_HORIZONTAL : 0);
     }
 
     // ====== 畫上方血條、魔力條、經驗條 ======
@@ -505,7 +560,14 @@ void Player::Draw() const {
     al_draw_filled_rectangle(barX, mpY,  barX + barW * mpRatio,  mpY + barH,  al_map_rgb(0, 0, 255));
     al_draw_filled_rectangle(barX, expY, barX + barW * expRatio, expY + barH, al_map_rgb(255, 255, 0));
 
-    // ====== 顯示 LV. 等級文字（角色下方） ======
+    // 顯示 LV. 等級文字（角色下方)
+    float textW = 50.0f;
+    float textH = 20.0f;
+    float textX = Position.x - textW / 2;
+    float textY = Position.y + bmpH / 2 + 5;
+    al_draw_filled_rectangle(textX, textY, textX + textW, textY + textH,
+        al_map_rgba(50, 50, 50, 180));
+
     std::string levelText = "LV. " + std::to_string(level);
     Engine::Label label(levelText, "pirulen.ttf", 12,
         Position.x, Position.y + bmpH / 2 + 5, 255, 255, 255, 255);
