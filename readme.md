@@ -15,7 +15,7 @@ Developed in C++ using the Allegro 5 game framework, this game allows players to
 - **H**: Use Red Potions / coins to restore HP
 - **M**: Use Blue Potions to restore MP
 - **Q**: Save the game and return to the start menu
-- **SPACE**: (Define its usage if implemented)
+- **SPACE**: Switch weapons
 
 ## Pick-up Items
 
