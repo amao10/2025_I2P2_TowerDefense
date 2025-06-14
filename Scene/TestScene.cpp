@@ -25,6 +25,7 @@
 #include "Monster/Monster.hpp"
 #include "Monster/MushroomMonster.hpp"
 #include "Monster/SnailMonster.hpp"
+#include "Monster/BossMonster.hpp"
 #include "Map/MapSystem.hpp"
 
 TestScene::TestScene()
@@ -84,6 +85,7 @@ void TestScene::Initialize() {
     AddNewObject(MonsterGroup = new Group());
     AddNewObject(EffectGroup = new Group());
     AddNewObject(PickupGroup = new Group());
+    AddNewObject(BossOrbGroup = new Group());
     LoadMonstersForCurrentMap();
     
     //playBGM
@@ -112,6 +114,7 @@ void TestScene::Terminate() {
     MonsterGroup = nullptr;
     EffectGroup = nullptr;
     PickupGroup = nullptr;
+    BossOrbGroup = nullptr;
 }
 
 void TestScene::Update(float deltaTime) {
@@ -402,6 +405,9 @@ Monster* TestScene::createMonsterByType(MonsterType type, float x, float y) {
             Engine::LOG(Engine::INFO) << "Creating SnailMonster.";
             // SnailMonster("resources/images/snail.png", x, y, radius, speed, hp, money)
             return new SnailMonster(x, y);
+        case MonsterType::Boss:
+            Engine::LOG(Engine::INFO) << "Creating BossMonster.";
+            return new BossMonster(x,y);
         default:
             Engine::LOG(Engine::ERROR) << "Unknown monster type: " << (int)type;
             return nullptr;
