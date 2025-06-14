@@ -11,6 +11,7 @@ The ultimate goal is to defeat the Boss to win the game. If the player's HP drop
 ## Controls
 
 - **LEFT / RIGHT**: Move the character left/right
+- **DOWN**: Prone
 - **ALT**: Jump
 - **DOWN + ALT**: Drop through platforms
 - **LEFT CTRL**: Basic attack

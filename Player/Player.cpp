@@ -165,17 +165,18 @@ void Player::Update(float deltaTime) {
     }
 
     // test hp mp functions with debounce
+    /*
     bool keyZ = al_key_down(&keyState, ALLEGRO_KEY_Z);
     if (keyZ && !prevKeyZ) {
         TakeDamage(10); // 扣血
     }
     prevKeyZ = keyZ;
 
-    /*bool keyC = al_key_down(&keyState, ALLEGRO_KEY_C);
+    bool keyC = al_key_down(&keyState, ALLEGRO_KEY_C);
     if (keyC && !prevKeyC) {
         UseMP(10); // 扣魔
     }
-    prevKeyC = keyC;*/
+    prevKeyC = keyC;
 
     bool keyA = al_key_down(&keyState, ALLEGRO_KEY_A);
     if (keyA && !prevKeyA) {
@@ -194,6 +195,7 @@ void Player::Update(float deltaTime) {
         GainExp(50); // 增加 50 EXP
     }
     prevKeyE = keyE;
+    */
 
     //+Hp, MP
     bool keyH = al_key_down(&keyState, ALLEGRO_KEY_H);
@@ -299,7 +301,7 @@ void Player::Update(float deltaTime) {
                 for (auto& obj : scene->MonsterGroup->GetObjects()) {
                     Monster* monster = dynamic_cast<Monster*>(obj);
                     if (monster && monster->Visible) {
-                        monster->Hit(9999); 
+                        monster->Hit(500); 
                     }
                 }
             }
