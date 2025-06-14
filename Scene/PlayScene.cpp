@@ -80,7 +80,7 @@ void PlayScene::Initialize() {
     mapDistance = CalculateBFSDistance();
     ConstructUI();
     // add player
-    player = new Player(640, 416, 180, 100, 50, 10, 5);
+    player = new Player(640, 416, 100, 180, 100, 50, 10, 5);
     GroundEffectGroup->AddNewObject(player);
     imgTarget = new Engine::Image("play/target.png", 0, 0);
     imgTarget->Visible = false;

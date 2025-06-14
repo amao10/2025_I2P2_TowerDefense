@@ -77,7 +77,7 @@ protected:
 
 public:
     
-    Player(int x, int y, int speed, int hp, int mp, int atk, int def);
+    Player(int x, int y, int speed, int level, int hp, int mp, int atk, int def);
     ~Player();
     void Update(float deltaTime) override;
     void Draw() const override;
@@ -91,6 +91,13 @@ public:
     int GetExp() const;
     int GetExpToLevelUp() const;
 
+    //for saving data
+    int GetSpeed(){return speed;}
+    int GetHP(){return hp;}
+    int GetMP(){return mp;}
+    int GetAtk(){return attack;}
+    int GetDef(){return defense;}
+
     //pickups
     int coin = 0;          // coin amount
     int redPotion = 0;     // redPotion amount
@@ -102,10 +109,6 @@ public:
     void Heal(int amount); //+HP
     void RecoverMP(int amount); //+MP
     float CollisionRadius;
-
-    int GetHP(){
-        return hp;
-    }
 
 };
 
