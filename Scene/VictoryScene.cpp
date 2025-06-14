@@ -31,7 +31,7 @@ void VictoryScene::Initialize() {
 
     // 2. 文字提示
     AddNewObject(new Engine::Label(
-        "Game Over",               // 顯示文字
+        "Victory!",               // 顯示文字
         "pirulen.ttf",             // 字型
         48,                        // 字級
         halfW, halfH / 4 + 10,     // 位置
