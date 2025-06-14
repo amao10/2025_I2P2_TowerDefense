@@ -23,21 +23,21 @@ void VictoryScene::Initialize() {
 
     // 1. 全螢幕背景（可替換為你專案中的「Game Over」圖片）
     AddNewObject(new Engine::Image(
-        "lose/benjamin-happy.png", // 圖片路徑
+        "victory.png", // 圖片路徑
         halfW, halfH,              // 中心點
         0, 0,                      // 原圖大小自動縮放
         0.5f, 0.5f                 // 錨點置中
     ));
 
     // 2. 文字提示
-    AddNewObject(new Engine::Label(
-        "Game Over",               // 顯示文字
-        "pirulen.ttf",             // 字型
-        48,                        // 字級
-        halfW, halfH / 4 + 10,     // 位置
-        255, 255, 255, 255,        // 顏色（白）
-        0.5f, 0.5f                 // 錨點置中
-    ));
+    // AddNewObject(new Engine::Label(
+    //     "Game Over",               // 顯示文字
+    //     "pirulen.ttf",             // 字型
+    //     48,                        // 字級
+    //     halfW, halfH / 4 + 10,     // 位置
+    //     255, 255, 255, 255,        // 顏色（白）
+    //     0.5f, 0.5f                 // 錨點置中
+    // ));
 
     // 3. 重試按鈕
     auto* btn = new Engine::ImageButton(
@@ -50,7 +50,7 @@ void VictoryScene::Initialize() {
     AddNewControlObject(btn);
 
     AddNewObject(new Engine::Label(
-        "Retry",                   // 按鈕文字
+        "Back",                   // 按鈕文字
         "pirulen.ttf", 48,
         halfW, halfH * 7 / 4,
         0, 0, 0, 255,              // 顏色（黑）

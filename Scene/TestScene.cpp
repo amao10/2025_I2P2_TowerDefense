@@ -299,7 +299,7 @@ void TestScene::Update(float deltaTime) {
     //按Q存檔回StartScene
     if(curQ && !prevQ){
         SavePlayerStatus("Resource/PlayerStatus.txt", player);
-        Engine::GameEngine::GetInstance().ChangeScene("start");
+        //Engine::GameEngine::GetInstance().ChangeScene("start");
     }
     prevQ = curQ;
     //死亡進EndScene，不存檔

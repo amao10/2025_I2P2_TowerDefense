@@ -86,7 +86,7 @@ void BossMonster::OnExplode() {
     DestroyOrbs(); 
 
     // Trigger WinScene
-    Engine::GameEngine::GetInstance().ChangeScene("end"); // Assuming your WinScene is registered with ID "win"
+    Engine::GameEngine::GetInstance().ChangeScene("victory"); // Assuming your WinScene is registered with ID "win"
 
     // Important: Do NOT call Monster::OnExplode() here unless you want the generic monster effects (coins, etc.)
     // If you want some of the base monster effects (like explosion effect), you can explicitly call it:
