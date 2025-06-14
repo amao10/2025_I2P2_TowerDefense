@@ -1,5 +1,4 @@
 #include "CoinPickup.hpp"
-#include "Scene/PlayScene.hpp"
 #include "Scene/TestScene.hpp"
 #include "Engine/Collider.hpp"
 #include "Engine/GameEngine.hpp"

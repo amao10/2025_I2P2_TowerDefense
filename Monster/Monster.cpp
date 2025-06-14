@@ -35,6 +35,7 @@ void Monster::OnExplode() {
     getTestScene()->GetPlayer()->GainExp(20);
     getTestScene()->EffectGroup->AddNewObject(new ExplosionEffect(centerX, centerY));
     getTestScene()->PickupGroup->AddNewObject(new CoinPickup(centerX, centerY, money));
+    getTestScene()->PickupGroup->AddNewObject(new ItemPickup(centerX+10,centerY+10));
 }
 
 // 怪物構造函數
