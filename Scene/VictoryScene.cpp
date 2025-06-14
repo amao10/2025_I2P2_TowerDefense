@@ -71,14 +71,14 @@ void VictoryScene::Initialize() {
         halfW, halfH * 7 / 4,
         0, 0, 0, 255,  // 顏色（黑）
         0.5f, 0.5f));
-
+    AudioHelper::PlaySample("win_game.ogg");
     // 4. 背景音（可換成你的 gameover 音效）
-    bgmInstance = AudioHelper::PlaySample(
-        "astronomia.ogg",  // 音檔路徑
+    /*bgmInstance = AudioHelper::PlaySample(
+        "win_game.ogg",  // 音檔路徑
         false,
         AudioHelper::BGMVolume,
         PlayScene::DangerTime  // 可自由指定長度
-    );
+    );*/
 }
 
 void VictoryScene::Terminate() {
