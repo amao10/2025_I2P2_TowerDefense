@@ -21,6 +21,9 @@ add_executable(2025_I2P2_TowerDefense
     Bullet/LaserBullet.hpp
     Bullet/SlowBullet.cpp
     Bullet/SlowBullet.hpp
+    Bullet/Cannonball.cpp
+    Bullet/Cannonball.hpp
+
     
     Pickup/CoinPickup.cpp
     Pickup/CoinPickup.hpp

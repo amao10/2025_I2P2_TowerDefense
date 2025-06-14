@@ -60,7 +60,7 @@ public:
 
     ALLEGRO_BITMAP* bgBmp;
     std::vector<TeleportTrigger*> teleportTriggers_;
-
+    Engine::Group* BulletGroup;
 private:
     ALLEGRO_SAMPLE_ID bgmId_;
     MapSystem* mapSystem_;
