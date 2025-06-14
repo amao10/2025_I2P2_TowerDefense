@@ -58,7 +58,7 @@ public:
 
     ALLEGRO_BITMAP* bgBmp;
     std::vector<TeleportTrigger*> teleportTriggers_;
-
+    Engine::Group* BulletGroup;
 private:
     MapSystem* mapSystem_;
     float elapsedTime_;

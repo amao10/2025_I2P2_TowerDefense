@@ -11,6 +11,7 @@
 #include "UI/Component/Label.hpp"
 #include "Monster/Monster.hpp"
 #include "Engine/AudioHelper.hpp"
+#include "Bullet/Cannonball.hpp"
 
 Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
     : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y),
@@ -371,8 +372,16 @@ void Player::Update(float deltaTime) {
                 soundName = "sword_attack.ogg";
                 break;
             case HANDCANNON:
-                //soundName = "handcannon_attack.ogg";
+                soundName = "handcannon_attack.ogg";
+                if (scene) {
+                    float dir = (direction == RIGHT ? 1.0f : -1.0f);
+                    float spawnX = Position.x + dir * 30;
+                    float spawnY = Position.y;
+                    scene->BulletGroup->AddNewObject(new CannonBall(spawnX, spawnY, dir, attack + 20));
+                }
                 break;
+
+
 
             default:
                 soundName = "no_weapon_attack.ogg";

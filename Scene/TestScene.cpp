@@ -82,6 +82,8 @@ void TestScene::Initialize() {
     AddNewObject(MonsterGroup = new Group());
     AddNewObject(EffectGroup = new Group());
     AddNewObject(PickupGroup = new Group());
+    AddNewObject(BulletGroup = new Engine::Group());
+
     LoadMonstersForCurrentMap();
     
     //playBGM
