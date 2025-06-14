@@ -89,7 +89,7 @@ add_executable(2025_I2P2_TowerDefense
     Scene/StageSelectScene.cpp
     Scene/StageSelectScene.hpp
     Scene/StartScene.cpp
-    Scene/StartScene.h
+    Scene/StartScene.hpp
     Scene/WinScene.cpp
     Scene/WinScene.hpp
     Scene/SettingsScene.hpp
@@ -98,6 +98,8 @@ add_executable(2025_I2P2_TowerDefense
     Scene/ScoreBoardScene.cpp
     Scene/TestScene.hpp
     Scene/TestScene.cpp
+    Scene/EndScene.hpp
+    Scene/EndScene.cpp
 
 
     Turret/LaserTurret.cpp

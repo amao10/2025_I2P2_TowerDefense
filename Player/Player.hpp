@@ -96,6 +96,10 @@ public:
     void RecoverMP(int amount); //+MP
     float CollisionRadius;
 
+    int GetHP(){
+        return hp;
+    }
+
 };
 
 #endif  // PLAYER_HPP

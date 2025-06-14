@@ -56,6 +56,9 @@ public:
     ALLEGRO_BITMAP* blueBmp   = nullptr;
     ALLEGRO_FONT*   uiFont    = nullptr;
 
+    ALLEGRO_BITMAP* bgBmp;
+    std::vector<TeleportTrigger*> teleportTriggers_;
+
 private:
     MapSystem* mapSystem_;
     float elapsedTime_;
@@ -69,6 +72,6 @@ private:
     Monster* createMonsterByType(MonsterType type, float x, float y);
     // void ClearTeleportTriggers();
     // void CreateTeleportTriggers();
-    std::vector<IObject*> teleportTriggers_;
+    
     void LoadMonstersForCurrentMap();
 };

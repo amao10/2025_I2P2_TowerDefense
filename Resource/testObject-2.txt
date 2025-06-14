@@ -1,1 +1,2 @@
-T 12 3 Resource/testMap.txt Resource/testObject.txt Resource/testMonsterSpawns.txt 10 10
+T 12 3 Resource/testMap.txt Resource/testObject.txt Resource/testMonsterSpawns.txt 540 480
+T 5 1 Resource/bossMap.txt Resource/bossObject.txt Resource/testMonsterSpawns.txt 810 540
