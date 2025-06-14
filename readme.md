@@ -18,7 +18,7 @@ The ultimate goal is to defeat the Boss to win the game. If the player's HP drop
 - **C**: Special skill
 - **H**: Use Red Potions / coins to restore HP
 - **M**: Use Blue Potions to restore MP
-- **Q**: Save the game and return to the start menu
+- **Q**: Save the game 
 - **SPACE**: Switch weapons
 
 ## Pick-up Items
