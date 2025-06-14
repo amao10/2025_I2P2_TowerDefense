@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include "Engine/LOG.hpp"
+#include "Engine/AudioHelper.hpp"
 
 TestScene* ItemPickup::getTestScene() {
     return dynamic_cast<TestScene*>(Engine::GameEngine::GetInstance().GetActiveScene());
@@ -50,5 +51,6 @@ void ItemPickup::Update(float deltaTime) {
             scene->GetPlayer()->bluePotion++;
         }
         scene->PickupGroup->RemoveObject(objectIterator);
+        AudioHelper::PlayAudio("pickup.ogg");
     }
 }
