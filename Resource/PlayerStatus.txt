@@ -1,24 +1,11 @@
-PositionX=400
-PositionY=200
-
+PositionX=679
+PositionY=504
 Speed=300
-
-HP=  80
-MaxHP=100
-
-MP=  30
-MaxMP= 50
-
-Level=2
-Exp= 120
-ExpToLevelUp=200
-
-Attack=15
-Defense=5
-
-Coin=10
-RedPotion=2
-BluePotion=1
-
-CurrentWeapon=UNARMED
-Direction=LEFT
+HP=320
+MP=160
+Level=4
+Attack=25
+Defense=9
+Coin=20
+RedPotion=3
+BluePotion=4

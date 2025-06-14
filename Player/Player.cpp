@@ -13,10 +13,10 @@
 #include "Engine/AudioHelper.hpp"
 #include "Bullet/Cannonball.hpp"
 
-Player::Player(int x, int y, int speed, int hp, int mp, int atk, int def)
+Player::Player(int x, int y, int speed, int level, int hp, int mp, int atk, int def)
     : Engine::Sprite("Player_no_weapon/stand1_0.png", x, y),
       speed(speed),
-      level(1),
+      level(level),
       exp(0),
       expToLevelUp(100*level),
       prevExpToLevelUp(100*level),

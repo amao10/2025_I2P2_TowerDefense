@@ -10,6 +10,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <map>
 // using namespace std; // 通常不推薦在頭文件中使用，但在 .cpp 中可以接受
 
 #include "Engine/AudioHelper.hpp"
@@ -27,6 +28,22 @@
 #include "Monster/SnailMonster.hpp"
 #include "Monster/BossMonster.hpp"
 #include "Map/MapSystem.hpp"
+
+static void SavePlayerStatus(const std::string& path, Player* p) {
+    std::ofstream ofs(path);
+    if (!ofs.is_open()) return;
+    ofs << "PositionX=" << int(p->Position.x) << "\n";
+    ofs << "PositionY=" << int(p->Position.y) << "\n";
+    ofs << "Speed="    << p->GetSpeed()   << "\n";
+    ofs << "HP="       << p->GetHP()      << "\n";
+    ofs << "MP="       << p->GetMP()      << "\n";
+    ofs << "Level="    << p->GetLevel()    << "\n";
+    ofs << "Attack="   << p->GetAtk()  << "\n";
+    ofs << "Defense="  << p->GetDef() << "\n";
+    ofs << "Coin="     << p->coin    << "\n";
+    ofs << "RedPotion="<< p->redPotion   << "\n";
+    ofs << "BluePotion="<< p->bluePotion  << "\n";
+}
 
 TestScene::TestScene()
     : mapSystem_(nullptr), elapsedTime_(0.0f) {}
@@ -60,7 +77,54 @@ void TestScene::Initialize() {
         Engine::LOG(Engine::ERROR) << "Map loading failed: " << e.what();
     }
 
-    player = new Player(400, 200, 300, 1000, 500, 10, 10); // 可調位置和屬性
+//<<<<<<< HEAD
+    int px = 400, py = 200;
+    int speed = 300, level = 1, hp = 100, mp = 50, atk = 30, def = 0;
+    int coin = 0, redPotion = 0, bluePotion = 0;
+
+    {
+        std::ifstream ifs("Resource/PlayerStatus.txt");
+        if (!ifs.is_open())
+            throw std::ios_base::failure("無法開啟 PlayerStatus.txt");
+        std::string line;
+        std::map<std::string,std::string> kv;
+        auto trim = [](std::string &s) {
+            size_t a = s.find_first_not_of(" \t");
+            size_t b = s.find_last_not_of(" \t");
+            if (a == std::string::npos) { s.clear(); return; }
+            s = s.substr(a, b - a + 1);
+        };
+        while (std::getline(ifs, line)) {
+            if (line.empty() || line[0]=='#') continue;
+            auto p = line.find('=');
+            if (p == std::string::npos) continue;
+            std::string key = line.substr(0, p);
+            std::string val = line.substr(p+1);
+            trim(key); trim(val);
+            kv[key] = val;
+        }
+        px         = std::stoi(kv["PositionX"]);
+        py         = std::stoi(kv["PositionY"]);
+        speed      = std::stoi(kv["Speed"]);
+        level      = std::stoi(kv["Level"]);
+        hp         = std::stoi(kv["HP"]);
+        mp         = std::stoi(kv["MP"]);
+        atk        = std::stoi(kv["Attack"]);
+        def        = std::stoi(kv["Defense"]);
+        coin       = std::stoi(kv["Coin"]);
+        redPotion  = std::stoi(kv["RedPotion"]);
+        bluePotion = std::stoi(kv["BluePotion"]);
+    }
+
+    if(hp <= 0) hp = level * 100;
+
+    player = new Player(px, py, speed, level, hp, mp, atk, def); // 可調位置和屬性
+    player->coin = coin;
+    player->redPotion = redPotion;
+    player->bluePotion = bluePotion;
+// =======
+//     player = new Player(400, 200, 300, 1000, 500, 10, 10); // 可調位置和屬性
+// >>>>>>> upstream/main
     AddNewObject(player); // 讓 engine 控制 update & draw
 
     CreateTeleportTriggers();
@@ -229,6 +293,17 @@ void TestScene::Update(float deltaTime) {
         CreateTeleportTriggers();
     }
 
+    ALLEGRO_KEYBOARD_STATE keyState;
+    al_get_keyboard_state(&keyState);
+    static bool prevQ = false;
+    bool curQ = al_key_down(&keyState, ALLEGRO_KEY_Q);
+    //按Q存檔進EndScene
+    if(curQ && !prevQ){
+        SavePlayerStatus("Resource/PlayerStatus.txt", player);
+        Engine::GameEngine::GetInstance().ChangeScene("end");
+    }
+    prevQ = curQ;
+    //死亡進EndScene，不存檔
     if (player->GetHP() <= 0) {
         Engine::GameEngine::GetInstance().ChangeScene("end");
 
