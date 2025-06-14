@@ -16,10 +16,10 @@ const float PI_F = 3.1415926535f;
 // BossMonster 構造函數
 // 初始化 BossMonster 的基本屬性並創建環繞的球體
 BossMonster::BossMonster(int x, int y) : Monster("play/mistKnight.png", x, y, 80, 50, 100, 100) {
-    damageToPlayer = 50; // Boss 對玩家的基礎傷害
-    speed = 150.0f;      // Boss 的移動速度
+    damageToPlayer = 20; // Boss 對玩家的基礎傷害
+    speed = 80.0f;      // Boss 的移動速度
     patrolMode = PatrolMode::None; // Boss 不使用巡邏模式，將追蹤玩家
-
+    hp = 100;
     // 在構造時創建 Boss 的環繞球體
     CreateOrbs();
 }
