@@ -61,6 +61,7 @@ public:
     std::vector<TeleportTrigger*> teleportTriggers_;
 
 private:
+    ALLEGRO_SAMPLE_ID bgmId_;
     MapSystem* mapSystem_;
     float elapsedTime_;
     Player* player = nullptr;

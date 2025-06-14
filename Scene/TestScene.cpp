@@ -1,4 +1,5 @@
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_audio.h>
 
 #include <algorithm>
 #include <cmath>
@@ -34,6 +35,7 @@ TestScene::~TestScene() {
 }
 
 void TestScene::Initialize() {
+    teleportTriggers_.clear();
 
     al_init_primitives_addon();
 
@@ -85,23 +87,31 @@ void TestScene::Initialize() {
     LoadMonstersForCurrentMap();
     
     //playBGM
-    AudioHelper::PlayBGM("Fairytale.ogg");
-    elapsedTime_ = 0.0f;
+    // AudioHelper::PlayBGM("Fairytale.ogg");
+    // elapsedTime_ = 0.0f;
+    bgmId_ = AudioHelper::PlayBGM("Fairytale.ogg");
     Engine::LOG(Engine::INFO) << "TestScene initialized successfully.";
 }
 
 void TestScene::Terminate() {
+    AudioHelper::StopBGM(bgmId_);
+    ClearTeleportTriggers();
+
+    monsters.clear();
+    respawnTimers.clear();
+
     IScene::Terminate();
 
     if (mapSystem_) {
         delete mapSystem_;
         mapSystem_ = nullptr;
     }
-    // if (player) {
-    //     delete player;
-    //     player = nullptr;
-    // }
+
     player = nullptr;
+
+    MonsterGroup = nullptr;
+    EffectGroup = nullptr;
+    PickupGroup = nullptr;
 }
 
 void TestScene::Update(float deltaTime) {
