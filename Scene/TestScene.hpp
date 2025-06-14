@@ -1,5 +1,7 @@
 #pragma once
 #include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_font.h>   // 定义了 ALLEGRO_FONT
+#include <allegro5/allegro_ttf.h>    // 如果你要用 TTF 字体
 #include <list>
 #include <memory>
 #include <utility>
@@ -46,6 +48,17 @@ public:
     Group* EffectGroup; 
     Group* MonsterGroup;
 
+    void ClearTeleportTriggers();
+    void CreateTeleportTriggers();
+
+    ALLEGRO_BITMAP* coinBmp   = nullptr;
+    ALLEGRO_BITMAP* redBmp    = nullptr;
+    ALLEGRO_BITMAP* blueBmp   = nullptr;
+    ALLEGRO_FONT*   uiFont    = nullptr;
+
+    ALLEGRO_BITMAP* bgBmp;
+    std::vector<TeleportTrigger*> teleportTriggers_;
+
 private:
     MapSystem* mapSystem_;
     float elapsedTime_;
@@ -57,8 +70,8 @@ private:
     std::vector<float> respawnTimers;
 
     Monster* createMonsterByType(MonsterType type, float x, float y);
-    void ClearTeleportTriggers();
-    void CreateTeleportTriggers();
-    std::vector<IObject*> teleportTriggers_;
+    // void ClearTeleportTriggers();
+    // void CreateTeleportTriggers();
+    
     void LoadMonstersForCurrentMap();
 };

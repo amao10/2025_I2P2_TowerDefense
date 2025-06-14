@@ -3,6 +3,8 @@
 #include "MapSystem.hpp"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include "Scene/TestScene.hpp"
+#include "Engine/GameEngine.hpp"
 
 ALLEGRO_BITMAP* TeleportTrigger::bmp_ = nullptr;
 
@@ -41,10 +43,17 @@ void TeleportTrigger::Update(float /*deltaTime*/) {
      && py > Position.y && py < Position.y + Size.y)
     {
         triggered_ = true;
-        mapSystem_->unloadMap();
-        mapSystem_->loadMap(cfg_.targetMapFile, cfg_.targetObjFile, cfg_.targetMonsterSpawnFile);
-        player_->Position.x = static_cast<float>(cfg_.targetX);
-        player_->Position.y = static_cast<float>(cfg_.targetY);
+        // mapSystem_->unloadMap();
+        // mapSystem_->loadMap(cfg_.targetMapFile, cfg_.targetObjFile, cfg_.targetMonsterSpawnFile);
+        // player_->Position.x = static_cast<float>(cfg_.targetX);
+        // player_->Position.y = static_cast<float>(cfg_.targetY);
+
+        // auto* active = Engine::GameEngine::GetInstance().GetActiveScene();
+        // if (auto* scene = dynamic_cast<TestScene*>(active)) {
+        //     scene->ClearTeleportTriggers();
+        //     scene->CreateTeleportTriggers();
+        //     // …
+        // }
     }
 }
 

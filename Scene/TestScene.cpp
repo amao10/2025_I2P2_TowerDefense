@@ -34,6 +34,9 @@ TestScene::~TestScene() {
 }
 
 void TestScene::Initialize() {
+
+    al_init_primitives_addon();
+
     // 1. 取得顯示器
     ALLEGRO_DISPLAY* display = al_get_current_display();
     if (!display) {
@@ -42,7 +45,7 @@ void TestScene::Initialize() {
 
     // 2. 建立地圖系統
     mapSystem_ = new MapSystem(display);
-    CreateTeleportTriggers();
+    //CreateTeleportTriggers();
 
     // 3. 嘗試載入地圖
     try {
@@ -59,6 +62,18 @@ void TestScene::Initialize() {
 
     CreateTeleportTriggers();
 
+    bgBmp = Engine::Resources::GetInstance()
+          .GetBitmap("background.png").get();
+
+    coinBmp = Engine::Resources::GetInstance()
+             .GetBitmap("ui/coin.png").get();
+    redBmp  = Engine::Resources::GetInstance()
+                .GetBitmap("ui/red_potion.png").get();
+    blueBmp = Engine::Resources::GetInstance()
+                .GetBitmap("ui/blue_potion.png").get();
+    uiFont  = Engine::Resources::GetInstance()
+                .GetFont("pirulen.ttf", 16).get();
+
     // 4. 初始化计时器
     elapsedTime_ = 0.0f;
 
@@ -69,22 +84,24 @@ void TestScene::Initialize() {
     AddNewObject(PickupGroup = new Group());
     LoadMonstersForCurrentMap();
     
-
+    //playBGM
+    AudioHelper::PlayBGM("Fairytale.ogg");
     elapsedTime_ = 0.0f;
     Engine::LOG(Engine::INFO) << "TestScene initialized successfully.";
 }
 
 void TestScene::Terminate() {
+    IScene::Terminate();
+
     if (mapSystem_) {
         delete mapSystem_;
         mapSystem_ = nullptr;
     }
-    if (player) {
-        delete player;
-        player = nullptr;
-    }
-
-    IScene::Terminate();
+    // if (player) {
+    //     delete player;
+    //     player = nullptr;
+    // }
+    player = nullptr;
 }
 
 void TestScene::Update(float deltaTime) {
@@ -138,30 +155,7 @@ void TestScene::Update(float deltaTime) {
         }
     }
 
-    // 偵測任何傳送點
-    for (auto& tp : mapSystem_->GetTeleports()) {
-        if (tp.x == gx && tp.y == gy) {
-            // 1. 清除舊觸發器
-            ClearTeleportTriggers();
-            for (Monster* m : monsters) {
-                if (m) delete m; // 確保刪除怪物物件
-            }
-            monsters.clear();
-            MonsterGroup->Clear();// 清空 Group，但不會 delete 記憶體
-            respawnTimers.clear();
-            // 2. 換圖
-            mapSystem_->unloadMap();
-            mapSystem_->loadMap(tp.targetMapFile, tp.targetObjFile,tp.targetMonsterSpawnFile);
-            // 3. 重設玩家位置
-            player->Position.x = static_cast<float>(tp.targetX);
-            player->Position.y = static_cast<float>(tp.targetY);
-            // 5. 為新地圖生成怪物 (重要！)
-            LoadMonstersForCurrentMap();
-            // 4. 重建觸發器（新的地圖裡可能有新的 teleports）
-            CreateTeleportTriggers();
-            break;  // 一次只能觸發一個
-        }
-    }
+    
     // 怪物復活邏輯 - 需要修改為基於 mapSystem_->GetMonsterSpawns() 來獲取原始生成點
     // 您不再需要全局的 spawnPoints 和 spawnTypes
     for (size_t i = 0; i < monsters.size(); ++i) {
@@ -194,6 +188,37 @@ void TestScene::Update(float deltaTime) {
             }
         }
     }
+    // ---- 在所有物件都跑完 Update() 之後 ----
+    TeleportPoint pendingCfg;
+    bool needReload = false;
+    for (auto* tp : teleportTriggers_) {
+        if (tp->triggered_) {
+            pendingCfg = tp->cfg_;  // 儲存要切換的設定
+            needReload = true;
+            break;
+        }
+    }
+    if (needReload) {
+        // 1. 卸載／載入地圖
+        mapSystem_->unloadMap();
+        mapSystem_->loadMap(
+            pendingCfg.targetMapFile,
+            pendingCfg.targetObjFile,
+            pendingCfg.targetMonsterSpawnFile
+        );
+        // 2. 更新玩家位置
+        player->Position.x = float(pendingCfg.targetX);
+        player->Position.y = float(pendingCfg.targetY);
+        // 3. 清除、重建傳送點（此時已不在迴圈內，不會 invalidated）
+        ClearTeleportTriggers();
+        CreateTeleportTriggers();
+    }
+
+    if (player->GetHP() <= 0) {
+        Engine::GameEngine::GetInstance().ChangeScene("end");
+
+    }
+
 }
 
 void TestScene::LoadMonstersForCurrentMap() {
@@ -229,20 +254,131 @@ void TestScene::LoadMonstersForCurrentMap() {
     }
 }
 void TestScene::Draw() const {
-    al_clear_to_color(al_map_rgb(0, 0, 0));
-    // 2. 先把地圖畫出來
+    // 0. 先切回「螢幕座標系」畫背景
+    ALLEGRO_TRANSFORM uiTrans;
+    al_identity_transform(&uiTrans);
+    al_use_transform(&uiTrans);
+    // (如果需要清屏就打開下一行)
+    // al_clear_to_color(al_map_rgb(0, 0, 0));
+    al_draw_scaled_bitmap(
+        bgBmp,
+        0, 0,
+        al_get_bitmap_width(bgBmp),
+        al_get_bitmap_height(bgBmp),
+        0, 0,
+        Engine::GameEngine::GetInstance().GetScreenSize().x,
+        Engine::GameEngine::GetInstance().GetScreenSize().y,
+        0
+    );
+
     mapSystem_->render(nullptr);
 
-    ALLEGRO_TRANSFORM t;
-    al_identity_transform(&t);
-    al_translate_transform(&t, -mapSystem_->GetCameraX(), -mapSystem_->GetCameraY());
-    al_use_transform(&t);
-    // 3. 再把玩家和其他場景物件畫上去
-    Group::Draw();   // 或者 Engine::Group::Draw();
+    // 1. 切到「世界座標 → 螢幕座標」的相機 transform
+    ALLEGRO_TRANSFORM cam;
+    al_identity_transform(&cam);
+    al_translate_transform(
+        &cam,
+        -mapSystem_->GetCameraX(),
+        -mapSystem_->GetCameraY()
+    );
+    al_use_transform(&cam);
 
-    al_identity_transform(&t);
-    al_use_transform(&t);
+    // 2. 用相機 transform 畫地圖和所有世界物件
+    Group::Draw();      // 玩家 + 其他物件
+
+    // 3. 切回「螢幕座標系」──接下來畫 UI 層
+    al_use_transform(&uiTrans);
+
+    // 4. 繪製小地圖（右上角）
+    {
+        const float miniW   = 200;
+        const float miniH   = 200;
+        const float margin  = 10;
+        float screenW = Engine::GameEngine::GetInstance().GetScreenSize().x;
+        float screenH = Engine::GameEngine::GetInstance().GetScreenSize().y;
+        float miniX   = screenW - miniW - margin;
+        float miniY   = margin;
+
+        // 小地圖背景
+        al_draw_filled_rectangle(
+            miniX, miniY,
+            miniX + miniW, miniY + miniH,
+            al_map_rgba(0, 0, 0, 150)
+        );
+
+        // 地圖格子資料
+        const auto& tileData = mapSystem_->GetTileData();
+        int mapH = tileData.size();
+        int mapW = mapH > 0 ? tileData[0].size() : 0;
+        float gridW = miniW / mapW;
+        float gridH = miniH / mapH;
+
+        // 畫 1號／2號格子
+        for (int y = 0; y < mapH; ++y) {
+            for (int x = 0; x < mapW; ++x) {
+                int id = tileData[y][x];
+                if (id == 1) {
+                    al_draw_filled_rectangle(
+                        miniX + x*gridW,       miniY + y*gridH,
+                        miniX + (x+1)*gridW,   miniY + (y+1)*gridH,
+                        al_map_rgb(200,200,200)
+                    );
+                }
+                else if (id == 2) {
+                    al_draw_filled_rectangle(
+                        miniX + x*gridW,       miniY + y*gridH,
+                        miniX + (x+1)*gridW,   miniY + (y+1)*gridH,
+                        al_map_rgb(150,150,150)
+                    );
+                }
+            }
+        }
+
+        // 畫傳送點
+        for (auto& tp : mapSystem_->GetTeleports()) {
+            float cx = miniX + (tp.x + 0.5f) * gridW;
+            float cy = miniY + (tp.y + 0.5f) * gridH;
+            float r  = std::min(gridW, gridH) * 0.3f;
+            al_draw_filled_circle(cx, cy, r, al_map_rgb(255,0,0));
+        }
+
+        // 畫玩家位置
+        float mapPixelW = mapW * mapSystem_->tileWidth;
+        float mapPixelH = mapH * mapSystem_->tileHeight;
+        float px = player->Position.x / mapPixelW * miniW;
+        float py = player->Position.y / mapPixelH * miniH;
+        float pr = std::min(gridW, gridH) * 0.4f;
+        al_draw_filled_circle(miniX + px, miniY + py, pr, al_map_rgb(0,0,255));
+    }
+
+    // 5. 最後畫 UI：金幣、藥水圖示＆數量
+    const int uiX = 20, uiY = 20, spacing = 40;
+    // 金幣
+    al_draw_bitmap(coinBmp, uiX, uiY, 0);
+    Engine::Label(
+        std::to_string(player->coin),
+        "pirulen.ttf", 16,
+        uiX + 32, uiY + 8,
+        255, 255, 0, 255
+    ).Draw();
+    // 紅藥水
+    al_draw_bitmap(redBmp, uiX, uiY + spacing, 0);
+    Engine::Label(
+        std::to_string(player->redPotion),
+        "pirulen.ttf", 16,
+        uiX + 32, uiY + spacing + 8,
+        255,   0,   0, 255
+    ).Draw();
+    // 藍藥水
+    al_draw_bitmap(blueBmp, uiX, uiY + spacing*2, 0);
+    Engine::Label(
+        std::to_string(player->bluePotion),
+        "pirulen.ttf", 16,
+        uiX + 32, uiY + spacing*2 + 8,
+          0,   0, 255, 255
+    ).Draw();
 }
+
 
 // 怪物工廠方法
 Monster* TestScene::createMonsterByType(MonsterType type, float x, float y) {

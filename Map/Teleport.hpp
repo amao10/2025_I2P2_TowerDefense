@@ -28,10 +28,10 @@ public:
     void Draw() const override;
 
     static ALLEGRO_BITMAP* bmp_;
+    bool          triggered_;
+    TeleportPoint cfg_;
 
 private:
     Player*       player_;
     MapSystem*    mapSystem_;
-    TeleportPoint cfg_;
-    bool          triggered_;
 };
