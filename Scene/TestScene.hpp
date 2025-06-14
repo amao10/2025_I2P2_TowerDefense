@@ -16,11 +16,12 @@
 #include "Monster/Monster.hpp"
 #include "Engine/Group.hpp"
 #include "Engine/Collider.hpp"
-
+#include "BossAttack/BossOrb.hpp"
 
 enum class MonsterType {
     Mushroom,
     Snail,
+    Boss,
     UNKNOWN
 };
 class Monster;
@@ -47,6 +48,7 @@ public:
     Group* PickupGroup;
     Group* EffectGroup; 
     Group* MonsterGroup;
+    Group* BossOrbGroup;
 
     void ClearTeleportTriggers();
     void CreateTeleportTriggers();
@@ -60,6 +62,7 @@ public:
     std::vector<TeleportTrigger*> teleportTriggers_;
     Engine::Group* BulletGroup;
 private:
+    ALLEGRO_SAMPLE_ID bgmId_;
     MapSystem* mapSystem_;
     float elapsedTime_;
     Player* player = nullptr;

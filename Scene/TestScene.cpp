@@ -1,4 +1,5 @@
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_audio.h>
 
 #include <algorithm>
 #include <cmath>
@@ -24,6 +25,7 @@
 #include "Monster/Monster.hpp"
 #include "Monster/MushroomMonster.hpp"
 #include "Monster/SnailMonster.hpp"
+#include "Monster/BossMonster.hpp"
 #include "Map/MapSystem.hpp"
 
 TestScene::TestScene()
@@ -34,6 +36,7 @@ TestScene::~TestScene() {
 }
 
 void TestScene::Initialize() {
+    teleportTriggers_.clear();
 
     al_init_primitives_addon();
 
@@ -84,26 +87,36 @@ void TestScene::Initialize() {
     AddNewObject(PickupGroup = new Group());
     AddNewObject(BulletGroup = new Engine::Group());
 
+    AddNewObject(BossOrbGroup = new Group());
     LoadMonstersForCurrentMap();
     
     //playBGM
-    AudioHelper::PlayBGM("Fairytale.ogg");
-    elapsedTime_ = 0.0f;
+    // AudioHelper::PlayBGM("Fairytale.ogg");
+    // elapsedTime_ = 0.0f;
+    bgmId_ = AudioHelper::PlayBGM("Fairytale.ogg");
     Engine::LOG(Engine::INFO) << "TestScene initialized successfully.";
 }
 
 void TestScene::Terminate() {
+    AudioHelper::StopBGM(bgmId_);
+    ClearTeleportTriggers();
+
+    monsters.clear();
+    respawnTimers.clear();
+
     IScene::Terminate();
 
     if (mapSystem_) {
         delete mapSystem_;
         mapSystem_ = nullptr;
     }
-    // if (player) {
-    //     delete player;
-    //     player = nullptr;
-    // }
+
     player = nullptr;
+
+    MonsterGroup = nullptr;
+    EffectGroup = nullptr;
+    PickupGroup = nullptr;
+    BossOrbGroup = nullptr;
 }
 
 void TestScene::Update(float deltaTime) {
@@ -394,6 +407,9 @@ Monster* TestScene::createMonsterByType(MonsterType type, float x, float y) {
             Engine::LOG(Engine::INFO) << "Creating SnailMonster.";
             // SnailMonster("resources/images/snail.png", x, y, radius, speed, hp, money)
             return new SnailMonster(x, y);
+        case MonsterType::Boss:
+            Engine::LOG(Engine::INFO) << "Creating BossMonster.";
+            return new BossMonster(x,y);
         default:
             Engine::LOG(Engine::ERROR) << "Unknown monster type: " << (int)type;
             return nullptr;

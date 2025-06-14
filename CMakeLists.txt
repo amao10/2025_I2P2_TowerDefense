@@ -30,8 +30,14 @@ add_executable(2025_I2P2_TowerDefense
     Pickup/ItemPickup.cpp
     Pickup/ItemPickup.hpp
 
+    BossAttack/BossOrb.cpp
+    BossAttack/BossOrb.hpp
+    
+    Monster/Monstertype.hpp
     Monster/Monster.cpp
     Monster/Monster.hpp
+    Monster/BossMonster.cpp
+    Monster/BossMonster.hpp
     Monster/MushroomMonster.cpp
     Monster/MushroomMonster.hpp
     Monster/SnailMonster.cpp
