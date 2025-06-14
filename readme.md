@@ -56,9 +56,11 @@ Developed in C++ using the Allegro 5 game framework, this game allows players to
     - Teleport UI
     - Teleport collision detection
     - Scene switching
+  - **Boss attack system**
+    - Triangle orbiting projectile pattern
 
 ## Individual Contribution
 
 - **109000201 陳彤 (33.3%)**: Player UI, sound effects, weapon logic & animations, key control system  
 - **109062205 陳紗寧 (33.3%)**: Item counters, saving system, key control system, map system  
-- **109062234 李傳中 (33.3%)**: Monster UI, item animations, monster system  
+- **109062234 李傳中 (33.3%)**: Monster UI, item animations, monster system, boss attack system  
