@@ -27,6 +27,7 @@ add_executable(2025_I2P2_TowerDefense
     Pickup/ItemPickup.cpp
     Pickup/ItemPickup.hpp
 
+    Monster/Monstertype.hpp
     Monster/Monster.cpp
     Monster/Monster.hpp
     Monster/MushroomMonster.cpp

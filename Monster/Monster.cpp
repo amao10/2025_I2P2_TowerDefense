@@ -59,8 +59,8 @@ Monster::Monster(std::string img, float x, float y, float radius, float speed, f
     this->attackCooldown = 0.0f; // 初始時可以攻擊
 
     // 確保不使用構造函數傳入的 speed 參數影響巡邏
-    Engine::LOG(Engine::INFO) << "Monster created with constructor speed: " << speed 
-                             << ", but using moveSpeed: " << moveSpeed;
+    // Engine::LOG(Engine::INFO) << "Monster created with constructor speed: " << speed 
+    //                          << ", but using moveSpeed: " << moveSpeed;
 }
 
 // 判斷怪物是否應該被移除
@@ -91,7 +91,7 @@ void Monster::UpdatePath(const std::vector<std::vector<int>>& mapDistance) {
         map = scene->GetMapSystem();
     }
     if (!map) {
-        Engine::LOG(Engine::ERROR) << "Monster::UpdatePath: Map system is null!";
+        //Engine::LOG(Engine::ERROR) << "Monster::UpdatePath: Map system is null!";
         path.clear();
         return;
     }
@@ -218,23 +218,23 @@ void Monster::Update(float deltaTime) {
         }
     }
 
-    Engine::LOG(Engine::INFO) << "Monster onGround state: " << (onGround ? "TRUE" : "FALSE");
+    //Engine::LOG(Engine::INFO) << "Monster onGround state: " << (onGround ? "TRUE" : "FALSE");
 
     // --- 根據 patrolMode 決定行為 ---
     if (patrolMode == PatrolMode::BottomRow) {
-        Engine::LOG(Engine::INFO) << "Monster is in PatrolMode::BottomRow. OnGround: " << (onGround ? "TRUE" : "FALSE");
+        //Engine::LOG(Engine::INFO) << "Monster is in PatrolMode::BottomRow. OnGround: " << (onGround ? "TRUE" : "FALSE");
         // 處理轉向冷卻
         if (turnAroundCooldown > 0) {
             turnAroundCooldown -= deltaTime;
             Velocity.x = 0; // 在冷卻期間暫停水平移動，防止抖動
-            Engine::LOG(Engine::INFO) << "Monster in cooldown, Velocity.x = 0. Remaining cooldown: " << turnAroundCooldown;
+            //Engine::LOG(Engine::INFO) << "Monster in cooldown, Velocity.x = 0. Remaining cooldown: " << turnAroundCooldown;
         } else {
             // 只有在冷卻時間結束後才執行 UpdatePatrol
             if (onGround) {
                 UpdatePatrol(deltaTime, map);
             } else {
                 Velocity.x = 0;
-                Engine::LOG(Engine::INFO) << "Monster not on ground, patrol horizontal velocity set to 0.";
+                //Engine::LOG(Engine::INFO) << "Monster not on ground, patrol horizontal velocity set to 0.";
             }
         }
     } else {
@@ -246,10 +246,10 @@ void Monster::Update(float deltaTime) {
     Position.x += Velocity.x * deltaTime;
 
     // 加入調試日誌：顯示實際的移動距離
-    Engine::LOG(Engine::INFO) << "Monster deltaTime: " << deltaTime 
-                             << ", moveSpeed: " << moveSpeed 
-                             << ", Velocity.x: " << Velocity.x 
-                             << ", Movement this frame: " << (Velocity.x * deltaTime);
+    // Engine::LOG(Engine::INFO) << "Monster deltaTime: " << deltaTime 
+    //                          << ", moveSpeed: " << moveSpeed 
+    //                          << ", Velocity.x: " << Velocity.x 
+    //                          << ", Movement this frame: " << (Velocity.x * deltaTime);
 
     // 根據移動方向設置翻轉
     if (Velocity.x > 0) {
@@ -259,7 +259,7 @@ void Monster::Update(float deltaTime) {
     }
     
     // 加入日誌：顯示最終的速度
-    Engine::LOG(Engine::INFO) << "Monster Final Velocity: X=" << Velocity.x << " Y=" << Velocity.y;
+    //Engine::LOG(Engine::INFO) << "Monster Final Velocity: X=" << Velocity.x << " Y=" << Velocity.y;
 
     Sprite::Update(deltaTime);
 }
@@ -314,7 +314,7 @@ void Monster::Draw() const {
 // 巡邏邏輯的具體實作
 void Monster::UpdatePatrol(float deltaTime, const MapSystem* mapSystem) {
     if (!mapSystem) {
-        Engine::LOG(Engine::ERROR) << "Monster::UpdatePatrol: Map system is null!";
+        //Engine::LOG(Engine::ERROR) << "Monster::UpdatePatrol: Map system is null!";
         return;
     }
 
@@ -342,7 +342,7 @@ void Monster::UpdatePatrol(float deltaTime, const MapSystem* mapSystem) {
     // 在執行任何移動前，確保怪物不在冷卻中
     if (turnAroundCooldown > 0) {
         Velocity.x = 0; // 冷卻期間保持靜止
-        Engine::LOG(Engine::INFO) << "Monster in cooldown, Velocity.x = " << Velocity.x << ". Remaining cooldown: " << turnAroundCooldown;
+        //Engine::LOG(Engine::INFO) << "Monster in cooldown, Velocity.x = " << Velocity.x << ". Remaining cooldown: " << turnAroundCooldown;
         turnAroundCooldown -= deltaTime;
         if (turnAroundCooldown < 0) turnAroundCooldown = 0; // 避免負數
         return;
@@ -368,19 +368,19 @@ void Monster::UpdatePatrol(float deltaTime, const MapSystem* mapSystem) {
     bool turnAround = false;
 
     // Log 輸出，方便調試
-    Engine::LOG(Engine::INFO) << "UpdatePatrol: Moving " << (movingRight ? "Right" : "Left")
-                             << ". CurrentX: " << Position.x
-                             << ", MonsterCenterTileX: " << monsterCenterTileX
-                             << ", NextCheckTileX: " << nextCheckTileX
-                             << ", CurrentYTileAtBottom: " << currentYTileAtBottom
-                             << ", CheckYBelow: " << checkYBelow
-                             << ", MapWidth: " << mapSystem->mapWidth
-                             << ", MapHeight: " << mapSystem->mapHeight;
+    // Engine::LOG(Engine::INFO) << "UpdatePatrol: Moving " << (movingRight ? "Right" : "Left")
+    //                          << ". CurrentX: " << Position.x
+    //                          << ", MonsterCenterTileX: " << monsterCenterTileX
+    //                          << ", NextCheckTileX: " << nextCheckTileX
+    //                          << ", CurrentYTileAtBottom: " << currentYTileAtBottom
+    //                          << ", CheckYBelow: " << checkYBelow
+    //                          << ", MapWidth: " << mapSystem->mapWidth
+    //                          << ", MapHeight: " << mapSystem->mapHeight;
 
     // 1. 檢查是否超出地圖邊界 (nextCheckTileX)
     if (nextCheckTileX < 0 || nextCheckTileX >= mapSystem->mapWidth) {
         turnAround = true;
-        Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Hit map boundary)";
+        //Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Hit map boundary)";
     } else {
         // 2. 檢查前方瓦片本身是否是不可通行的實體 (ID 1 或 2)
         // 判斷怪物前方的瓦片 (在 currentYTileAtBottom 這一層) 是否為實體方塊
@@ -388,12 +388,12 @@ void Monster::UpdatePatrol(float deltaTime, const MapSystem* mapSystem) {
             int frontTileID = tileData[currentYTileAtBottom][nextCheckTileX];
             if (frontTileID == 1 || frontTileID == 2) { // 如果前方是實體瓦片，則轉向
                 turnAround = true;
-                Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Front tile is solid block, ID: " << frontTileID << ")";
+                //Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Front tile is solid block, ID: " << frontTileID << ")";
             }
         } else {
             // 如果 currentYTileAtBottom 超出範圍，這是不正常的，也轉向
             turnAround = true;
-            Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Current Y Tile at Bottom Out of Bounds)";
+            //Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Current Y Tile at Bottom Out of Bounds)";
         }
 
         // 3. 檢查前方瓦片下方是否是懸崖 (即下方瓦片是空的 ID 0)
@@ -402,12 +402,12 @@ void Monster::UpdatePatrol(float deltaTime, const MapSystem* mapSystem) {
                 int tileBelowFrontID = tileData[checkYBelow][nextCheckTileX];
                 if (tileBelowFrontID == 0) { // 如果下方瓦片是 ID 0 (空氣/懸崖)，則轉向
                     turnAround = true;
-                    Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Cliff ahead, TileBelowFrontID: " << tileBelowFrontID << ")";
+                    //Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Cliff ahead, TileBelowFrontID: " << tileBelowFrontID << ")";
                 }
             } else {
                 // 如果下方超出地圖範圍，也視為懸崖
                 turnAround = true;
-                Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Cliff ahead, below map boundary)";
+                //Engine::LOG(Engine::INFO) << "DEBUG: Monster turning " << (movingRight ? "Left" : "Right") << "! (Reason: Cliff ahead, below map boundary)";
             }
         }
     }
@@ -430,11 +430,11 @@ void Monster::UpdatePatrol(float deltaTime, const MapSystem* mapSystem) {
             Position.x = (monsterCenterTileX + 1) * patrolTileWidth - monsterWidth - safetyBuffer;
         }
 
-        Engine::LOG(Engine::INFO) << "Monster turned around. New Velocity.x: " << Velocity.x
-                                 << ". Monster position adjusted to: " << Position.x;
+        // Engine::LOG(Engine::INFO) << "Monster turned around. New Velocity.x: " << Velocity.x
+        //                          << ". Monster position adjusted to: " << Position.x;
     } else {
         Velocity.x = (movingRight ? moveSpeed : -moveSpeed);
     }
 
-    Engine::LOG(Engine::INFO) << "UpdatePatrol: Final X Velocity: " << Velocity.x;
+    //Engine::LOG(Engine::INFO) << "UpdatePatrol: Final X Velocity: " << Velocity.x;
 }
