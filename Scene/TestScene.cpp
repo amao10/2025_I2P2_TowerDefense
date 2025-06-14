@@ -261,7 +261,7 @@ void TestScene::Update(float deltaTime) {
                         Engine::LOG(Engine::ERROR) << "Monster respawn failed for type " << (int)spawnInfo.type;
                     }
                 } else {
-                    Engine::LOG(Engine::ERROR) << "Respawn index " << i << " out of bounds for current map monster spawns.";
+                    //Engine::LOG(Engine::ERROR) << "Respawn index " << i << " out of bounds for current map monster spawns.";
                 }
             }
         }
