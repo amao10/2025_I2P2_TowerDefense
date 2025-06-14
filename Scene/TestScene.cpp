@@ -77,7 +77,6 @@ void TestScene::Initialize() {
         Engine::LOG(Engine::ERROR) << "Map loading failed: " << e.what();
     }
 
-//<<<<<<< HEAD
     int px = 400, py = 200;
     int speed = 300, level = 1, hp = 100, mp = 50, atk = 30, def = 0;
     int coin = 0, redPotion = 0, bluePotion = 0;
@@ -297,10 +296,10 @@ void TestScene::Update(float deltaTime) {
     al_get_keyboard_state(&keyState);
     static bool prevQ = false;
     bool curQ = al_key_down(&keyState, ALLEGRO_KEY_Q);
-    //按Q存檔進EndScene
+    //按Q存檔回StartScene
     if(curQ && !prevQ){
         SavePlayerStatus("Resource/PlayerStatus.txt", player);
-        Engine::GameEngine::GetInstance().ChangeScene("end");
+        Engine::GameEngine::GetInstance().ChangeScene("start");
     }
     prevQ = curQ;
     //死亡進EndScene，不存檔
